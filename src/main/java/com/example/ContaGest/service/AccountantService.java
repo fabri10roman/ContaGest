@@ -9,7 +9,15 @@ import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.borders.Border;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Div;
 import com.itextpdf.layout.element.Image;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.HorizontalAlignment;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.layout.properties.VerticalAlignment;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -41,10 +49,21 @@ public class AccountantService {
         for (byte[] img : imgs) {
             ImageData imageData = ImageDataFactory.create(img);
             Image image = new Image(imageData);
-            document.add(image);
+            float width = pdfDocument.getDefaultPageSize().getWidth() - document.getLeftMargin() - document.getRightMargin();
+            float height = pdfDocument.getDefaultPageSize().getHeight() - document.getTopMargin() - document.getBottomMargin();
+            image.scaleToFit(width, height);
+            Div div = new Div();
+            div.setVerticalAlignment(VerticalAlignment.MIDDLE);
+            div.setHorizontalAlignment(HorizontalAlignment.CENTER);
+            div.add(image);
+            div.setMarginTop(20);
+            document.add(div);
         }
 
         document.close();
 
     }
+
+
+
 }
