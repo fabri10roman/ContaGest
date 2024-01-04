@@ -9,7 +9,6 @@ import lombok.*;
 @EqualsAndHashCode
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "Invoices")
 public class InvoiceModel {
@@ -24,4 +23,9 @@ public class InvoiceModel {
     @JoinColumn(name = "client_fk",nullable = false)
     private ClientModel client;
 
+    public InvoiceModel(int month, byte[] img, ClientModel client) {
+        this.month = month;
+        this.img = img;
+        this.client = client;
+    }
 }
