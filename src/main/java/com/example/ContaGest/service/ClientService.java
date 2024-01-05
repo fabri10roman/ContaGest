@@ -34,12 +34,23 @@ public class ClientService {
         if (clientModel.isPresent()){
             invoiceModel.setClient(clientModel.get());
         }else{
-            throw new ResourceNotFoundException("No se encontró ningún cliente con CI: " + clientCI);
+            throw new ResourceNotFoundException(String.format("Client with CI %s not found",clientCI));
         }
 
         invoiceRepository.save(invoiceModel);
     }
 
+    public void deleteImage (Long imageID){
+
+        Optional<InvoiceModel> invoiceModel = invoiceRepository.findById(imageID);
+
+        if (invoiceModel.isPresent()){
+            invoiceRepository.delete(invoiceModel.get());
+        }else{
+            throw new ResourceNotFoundException(String.format("Image with id %s not found",imageID));
+        }
+
+    }
 
 
 }

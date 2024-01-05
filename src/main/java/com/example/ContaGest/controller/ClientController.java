@@ -22,4 +22,11 @@ public class ClientController {
         clientService.saveImage(saveImage.getClientCI(),saveImage.getMonth(),saveImage.getPath());
     }
 
+    @DeleteMapping("/delete-img/{imgID}")
+    public void deleteImage (@PathVariable Long imgID){
+
+        clientService.deleteImage(imgID);
+
+    }
+
 }
