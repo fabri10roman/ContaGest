@@ -37,7 +37,7 @@ public class AccountantService {
         List<InvoiceModel> invoices = invoiceRepository.findByClientIdAndMonth(clientCI, month);
         List<byte[]> imgs = invoices.stream().map(InvoiceModel::getImg).toList();
 
-        if (imgs.isEmpty()) throw new ResourceNotFoundException("No existen facturas en el mes seleccionado");
+        if (imgs.isEmpty()) throw new ResourceNotFoundException(String.format("Invoices with client CI %s and month %s not found",clientCI,month));
 
         PdfWriter pdfWriter = new PdfWriter(path);
 

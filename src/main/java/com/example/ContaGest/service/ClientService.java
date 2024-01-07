@@ -34,7 +34,7 @@ public class ClientService {
         if (clientModel.isPresent()){
             invoiceModel.setClient(clientModel.get());
         }else{
-            throw new ResourceNotFoundException(String.format("Client with CI %s not found",clientCI));
+            throw new ResourceNotFoundException(String.format("Client with CI %s and month %s not found",clientCI,month));
         }
 
         invoiceRepository.save(invoiceModel);

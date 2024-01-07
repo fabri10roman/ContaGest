@@ -23,7 +23,7 @@ public class ImageService {
 
         List<Long> imgID = invoiceRepository.findIdByClientCI(clientCI);
 
-        if (imgID.isEmpty()) throw new ResourceNotFoundException(String.format("ID with clientCI %s not found",clientCI));
+        if (imgID.isEmpty()) throw new ResourceNotFoundException(String.format("ID with client CI %s not found",clientCI));
 
         return imgID;
     }
@@ -32,7 +32,7 @@ public class ImageService {
 
         List<Long> imgID = invoiceRepository.findIdByClientCiAndMonth(clientCI,month);
 
-        if (imgID.isEmpty()) throw new ResourceNotFoundException(String.format("ID with clientCI %s and month %s not found",clientCI,month));
+        if (imgID.isEmpty()) throw new ResourceNotFoundException(String.format("ID with client CI %s and month %s not found",clientCI,month));
 
         return imgID;
         
