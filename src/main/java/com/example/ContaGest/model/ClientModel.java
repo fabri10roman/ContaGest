@@ -22,7 +22,6 @@ public class ClientModel {
     private String name;
     private String lastname;
     private String email;
-    private String password;
 
     @ManyToOne
     @JoinColumn(name = "accountant_fk",nullable = false)

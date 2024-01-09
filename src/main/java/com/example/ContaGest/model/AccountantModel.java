@@ -23,7 +23,6 @@ public class AccountantModel {
     private String name;
     private String lastname;
     private String email;
-    private String password;
 
     @OneToMany(mappedBy = "accountant")
     private List<ClientModel> clients;
