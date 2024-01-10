@@ -3,6 +3,8 @@ package com.example.ContaGest.model;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.security.core.GrantedAuthority;
@@ -40,7 +42,7 @@ public class AccountantModel implements UserDetails{
     private Boolean isEnable;
 
     @OneToMany(mappedBy = "accountant", cascade = CascadeType.ALL)
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @Fetch(FetchMode.JOIN)
     private List<ClientModel> clients;
 
     @JsonManagedReference
