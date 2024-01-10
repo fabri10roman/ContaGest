@@ -25,9 +25,17 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorizeHttpRequests) ->
                 authorizeHttpRequests
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("").hasRole("ACCOUNTANT")
-                        .requestMatchers("").hasRole("CLIENT")
+                        .requestMatchers("/api/v1/img/**").denyAll()
+                        .requestMatchers(
+                                "/api/v1/auth/register-accountant",
+                                "/api/v1/auth/register-client",
+                                "/api/v1/auth/authenticate-accountant",
+                                "/api/v1/accountant/**"
+                                ).hasRole("ACCOUNTANT")
+                        .requestMatchers(
+                                "/api/v1/client/**",
+                                "/api/v1/auth//authenticate-client"
+                        ).hasRole("CLIENT")
                         .anyRequest()
                         .authenticated()
                 )
