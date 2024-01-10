@@ -2,6 +2,7 @@ package com.example.ContaGest.Auth;
 
 
 import com.example.ContaGest.config.JwtService;
+import com.example.ContaGest.exception.ResourceNotFoundException;
 import com.example.ContaGest.model.AccountantModel;
 import com.example.ContaGest.model.ClientModel;
 import com.example.ContaGest.model.Role;
@@ -50,14 +51,16 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse registerClient(RegisterRequestClient request) {
+        AccountantModel accountant = accountantRepository.findByUsername(request.getAccountCI()).orElseThrow(()-> new ResourceNotFoundException("Accountant not found"));
         var user = ClientModel.builder()
                 .userCI(request.getUserCI())
                 .email(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())
                 .number(request.getNumber())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .password(passwordEncoder.encode(request.getAccountCI()))
                 .role(Role.ROL_CLIENT)
+                .accountant(accountant)
                 .build();
         clientRepository.save(user);
         var jwtToken = jwtService.generateToken(user);

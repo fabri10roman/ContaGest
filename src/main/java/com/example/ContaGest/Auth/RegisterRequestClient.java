@@ -16,5 +16,5 @@ public class RegisterRequestClient {
     private String name;
     private String email;
     private String userCI;
-    private String password;
+    private String accountCI;
 }
