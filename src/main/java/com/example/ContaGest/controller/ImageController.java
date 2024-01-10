@@ -26,7 +26,7 @@ public class ImageController {
     }
 
     @GetMapping("/all")
-    public List<Long> getAllIdImage(@RequestBody Long clientCI){
+    public List<Long> getAllIdImage(@RequestBody String clientCI){
 
         return imageService.findIdByClientCI(clientCI);
 

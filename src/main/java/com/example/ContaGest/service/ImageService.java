@@ -19,7 +19,7 @@ public class ImageService {
         return invoiceRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Image with id %s not found",id)));
     }
 
-    public List<Long> findIdByClientCI (Long clientCI){
+    public List<Long> findIdByClientCI (String clientCI){
 
         List<Long> imgID = invoiceRepository.findIdByClientCI(clientCI);
 
@@ -28,7 +28,7 @@ public class ImageService {
         return imgID;
     }
 
-    public List<Long> findIdByClientCiAndMonth(Long clientCI, int month){
+    public List<Long> findIdByClientCiAndMonth(String clientCI, int month){
 
         List<Long> imgID = invoiceRepository.findIdByClientCiAndMonth(clientCI,month);
 

@@ -10,7 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 public class PdfRequest {
 
-    private Long clientCI;
+    private String clientCI;
     private int month;
     private String path;
 

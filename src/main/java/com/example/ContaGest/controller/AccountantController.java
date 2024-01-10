@@ -16,10 +16,7 @@ public class AccountantController {
 
     @GetMapping("/get-invoice")
     public void getPDF(@RequestBody PdfRequest pdfRequest) throws FileNotFoundException {
-
-        //String path = "/home/ubuntu/Descargas/prueba.pdf";
         accountantService.getPDF(pdfRequest.getClientCI(),pdfRequest.getMonth(),pdfRequest.getPath());
-
     }
 
 

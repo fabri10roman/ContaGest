@@ -4,6 +4,7 @@ import com.example.ContaGest.dto.SaveImage;
 import com.example.ContaGest.service.ClientService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -15,18 +16,13 @@ public class ClientController {
     private ClientService clientService;
 
     @PostMapping("/save-img")
-    public void saveImage(@RequestBody SaveImage saveImage) throws IOException {
-
-        //String path = "/home/ubuntu/Descargas/WhatsApp Image 2024-01-01 at 8.05.44 PM.jpeg";
-
-        clientService.saveImage(saveImage.getClientCI(),saveImage.getMonth(),saveImage.getPath());
+    public void saveImage(SaveImage saveImage) throws IOException {
+        clientService.saveImage(saveImage.getClientCI(),saveImage.getMonth(),saveImage.getFile().getBytes());
     }
 
     @DeleteMapping("/delete-img/{imgID}")
     public void deleteImage (@PathVariable Long imgID){
-
         clientService.deleteImage(imgID);
-
     }
 
 }

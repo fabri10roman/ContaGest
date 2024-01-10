@@ -10,6 +10,6 @@ import lombok.*;
 @AllArgsConstructor
 public class ImageRequest {
 
-    Long clientCI;
+    String clientCI;
     int month;
 }

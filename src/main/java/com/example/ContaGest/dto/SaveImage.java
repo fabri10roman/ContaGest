@@ -1,6 +1,7 @@
 package com.example.ContaGest.dto;
 
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -10,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 public class SaveImage {
 
-    private Long clientCI;
+    private MultipartFile file;
+    private String clientCI;
     private int month;
-    private String path;
 }

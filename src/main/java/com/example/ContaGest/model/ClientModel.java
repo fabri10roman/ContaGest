@@ -1,6 +1,7 @@
 package com.example.ContaGest.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -38,9 +39,11 @@ public class ClientModel implements UserDetails {
     @Column(nullable = false)
     private Integer number;
     private Boolean isEnable;
+    private Integer accountant_id;
+
 
     @ManyToOne
-    @JoinColumn(name = "accountant_fk",nullable = false)
+    @JoinColumn(name = "accountant_id", referencedColumnName = "id", insertable = false, updatable = false)
     private AccountantModel accountant;
 
     @OneToMany(mappedBy = "client")
@@ -48,6 +51,11 @@ public class ClientModel implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @JsonBackReference
+    public AccountantModel getAccountant() {
+        return accountant;
     }
 
     @Override
@@ -71,7 +79,7 @@ public class ClientModel implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return isEnable;
+        return true;
     }
 
 }

@@ -1,10 +1,6 @@
 package com.example.ContaGest.config;
 
-import com.example.ContaGest.exception.ResourceNotFoundException;
-import com.example.ContaGest.model.AccountantModel;
-import com.example.ContaGest.model.ClientModel;
-import com.example.ContaGest.repository.AccountantRepository;
-import com.example.ContaGest.repository.ClientRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,29 +8,22 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.ArrayList;
-import java.util.Optional;
 
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    //private final UserInfoRepository userInfoRepository;
-    private final ClientRepository clientRepository;
-    private final AccountantRepository accountantRepository;
-/*
+    private final GlobalUserDetailService globalUserDetailService;
+
     @Bean
     public UserDetailsService userDetailsService(){
-        return username -> userInfoRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return globalUserDetailService;
     }
-*/
+
+/*
     @Bean
     public UserDetailsService userDetailsService(){
         return username -> {
@@ -50,6 +39,8 @@ public class ApplicationConfig {
             throw new ResourceNotFoundException("User not found with userCI: " + username);
         };
     }
+
+ */
     @Bean
     public AuthenticationProvider authenticationProvider (){
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();

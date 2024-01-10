@@ -32,7 +32,7 @@ public class AccountantService {
     private final AccountantRepository accountantRepository;
     private final InvoiceRepository invoiceRepository;
 
-    public void getPDF (Long clientCI,int month,String path) throws FileNotFoundException {
+    public void getPDF (String clientCI,int month,String path) throws FileNotFoundException {
 
         List<InvoiceModel> invoices = invoiceRepository.findByClientIdAndMonth(clientCI, month);
         List<byte[]> imgs = invoices.stream().map(InvoiceModel::getImg).toList();

@@ -21,15 +21,12 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final InvoiceRepository invoiceRepository;
 
-    public void saveImage (Long clientCI,int month,String path) throws IOException {
-
-        File file = new File(path);
-        byte[] fileContent = Files.readAllBytes(file.toPath());
+    public void saveImage (String clientCI,int month, byte[] bytes) {
 
         InvoiceModel invoiceModel = new InvoiceModel();
         invoiceModel.setMonth(month);
-        invoiceModel.setImg(fileContent);
-        Optional<ClientModel> clientModel = clientRepository.findById(clientCI);
+        invoiceModel.setImg(bytes);
+        Optional<ClientModel> clientModel = clientRepository.findByUsername(clientCI);
 
         if (clientModel.isPresent()){
             invoiceModel.setClient(clientModel.get());

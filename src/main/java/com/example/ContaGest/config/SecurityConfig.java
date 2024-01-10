@@ -1,5 +1,6 @@
 package com.example.ContaGest.config;
 
+import com.example.ContaGest.model.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,17 +26,20 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorizeHttpRequests) ->
                 authorizeHttpRequests
-                        .requestMatchers("/api/v1/img/**").denyAll()
                         .requestMatchers(
                                 "/api/v1/auth/register-accountant",
-                                "/api/v1/auth/register-client",
                                 "/api/v1/auth/authenticate-accountant",
+                                "/api/v1/auth/authenticate-client"
+                                ).permitAll()
+                        .requestMatchers("/api/v1/img/**").denyAll()
+                        .requestMatchers(
+                                "/api/v1/auth/register-client",
                                 "/api/v1/accountant/**"
-                                ).hasRole("ACCOUNTANT")
+                                ).hasAuthority(Role.ACCOUNTANT.name())
                         .requestMatchers(
                                 "/api/v1/client/**",
-                                "/api/v1/auth//authenticate-client"
-                        ).hasRole("CLIENT")
+                                "/api/v1/auth/authenticate-client"
+                        ).hasAuthority(Role.CLIENT.name())
                         .anyRequest()
                         .authenticated()
                 )

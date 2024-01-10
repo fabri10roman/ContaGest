@@ -1,7 +1,10 @@
 package com.example.ContaGest.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,8 +39,14 @@ public class AccountantModel implements UserDetails{
     private Integer number;
     private Boolean isEnable;
 
-    @OneToMany(mappedBy = "accountant")
+    @OneToMany(mappedBy = "accountant", cascade = CascadeType.ALL)
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<ClientModel> clients;
+
+    @JsonManagedReference
+    public List<ClientModel> getClients() {
+        return clients;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -64,7 +73,5 @@ public class AccountantModel implements UserDetails{
     }
 
     @Override
-    public boolean isEnabled() {
-        return isEnable;
-    }
+    public boolean isEnabled() {return true; }
 }

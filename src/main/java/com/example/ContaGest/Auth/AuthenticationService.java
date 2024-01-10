@@ -32,7 +32,7 @@ public class AuthenticationService {
                 .lastname(request.getLastname())
                 .number(request.getNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.ROL_ACCOUNTANT)
+                .role(Role.ACCOUNTANT)
                 .build();
         accountantRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
@@ -58,9 +58,9 @@ public class AuthenticationService {
                 .name(request.getName())
                 .lastname(request.getLastname())
                 .number(request.getNumber())
-                .password(passwordEncoder.encode(request.getAccountCI()))
-                .role(Role.ROL_CLIENT)
-                .accountant(accountant)
+                .password(passwordEncoder.encode(request.getUserCI()))
+                .role(Role.CLIENT)
+                .accountant_id(accountant.getId())
                 .build();
         clientRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
