@@ -11,12 +11,11 @@ import java.util.Collection;
 import java.util.List;
 
 
-@Entity
+@Data
+@Builder
 @NoArgsConstructor
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
+@AllArgsConstructor
+@Entity
 @Table(name = "Users")
 public class UserInfoModel implements UserDetails {
 
@@ -36,15 +35,6 @@ public class UserInfoModel implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
     private Boolean isEnable;
-
-    public UserInfoModel(String name, String username, String email, String password, Role role, Boolean isEnable) {
-        this.name = name;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-        this.isEnable = isEnable;
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
