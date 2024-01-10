@@ -1,5 +1,5 @@
 package com.example.ContaGest.repository;
-
+/*
 import com.example.ContaGest.model.UserInfoModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,3 +13,4 @@ public interface UserInfoRepository extends JpaRepository<UserInfoModel,Integer>
     Optional<UserInfoModel> findByUsername(@Param("username") String username);
 
 }
+*/

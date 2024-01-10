@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-
+/*
 
 @Data
 @Builder
@@ -61,3 +61,4 @@ public class UserInfoModel implements UserDetails {
         return isEnable;
     }
 }
+*/

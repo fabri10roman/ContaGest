@@ -39,12 +39,6 @@ public class AccountantModel implements UserDetails{
     @OneToMany(mappedBy = "accountant")
     private List<ClientModel> clients;
 
-    @ManyToOne
-    @JoinColumn(name = "accountant_fk",nullable = false)
-    private AccountantModel accountant;
-
-    @OneToMany(mappedBy = "client")
-    private List<InvoiceModel> invoices;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
