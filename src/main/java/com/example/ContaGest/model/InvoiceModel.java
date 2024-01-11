@@ -15,7 +15,7 @@ public class InvoiceModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     private int month;
     private byte[] img;
 

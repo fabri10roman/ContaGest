@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface AccountantRepository extends JpaRepository<AccountantModel,Long> {
+public interface AccountantRepository extends JpaRepository<AccountantModel,Integer> {
 
     @Query("SELECT f FROM AccountantModel f WHERE f.userCI=:userCI")
     Optional<AccountantModel> findByUsername(@Param("userCI") String userCI);

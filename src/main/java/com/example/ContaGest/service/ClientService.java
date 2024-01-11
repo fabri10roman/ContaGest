@@ -6,16 +6,14 @@ import com.example.ContaGest.model.ClientModel;
 import com.example.ContaGest.model.InvoiceModel;
 import com.example.ContaGest.repository.ClientRepository;
 import com.example.ContaGest.repository.InvoiceRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+
 import java.util.Optional;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ClientService {
 
     private final ClientRepository clientRepository;
@@ -37,7 +35,7 @@ public class ClientService {
         invoiceRepository.save(invoiceModel);
     }
 
-    public void deleteImage (Long imageID){
+    public void deleteImage (Integer imageID){
 
         Optional<InvoiceModel> invoiceModel = invoiceRepository.findById(imageID);
 

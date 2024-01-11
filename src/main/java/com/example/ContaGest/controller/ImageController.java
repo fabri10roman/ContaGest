@@ -1,7 +1,6 @@
 package com.example.ContaGest.controller;
 
 import com.example.ContaGest.dto.ImageRequest;
-import com.example.ContaGest.exception.ResourceNotFoundException;
 import com.example.ContaGest.service.ImageService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
@@ -18,7 +17,7 @@ public class ImageController {
     private ImageService imageService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<byte[]> getBinaryImage(@PathVariable Long id){
+    public ResponseEntity<byte[]> getBinaryImage(@PathVariable Integer id){
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.IMAGE_JPEG)
@@ -26,14 +25,14 @@ public class ImageController {
     }
 
     @GetMapping("/all")
-    public List<Long> getAllIdImage(@RequestBody String clientCI){
+    public List<Integer> getAllIdImage(@RequestBody String clientCI){
 
         return imageService.findIdByClientCI(clientCI);
 
     }
 
     @GetMapping("/month")
-    public List<Long> getAllIdImagePerMonth(@RequestBody ImageRequest imageRequest){
+    public List<Integer> getAllIdImagePerMonth(@RequestBody ImageRequest imageRequest){
 
         return imageService.findIdByClientCiAndMonth(imageRequest.getClientCI(),imageRequest.getMonth());
     }
