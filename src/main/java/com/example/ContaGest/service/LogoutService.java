@@ -1,4 +1,4 @@
-package com.example.ContaGest.config;
+package com.example.ContaGest.service;
 
 import com.example.ContaGest.repository.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;

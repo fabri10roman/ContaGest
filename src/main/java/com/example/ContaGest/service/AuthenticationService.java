@@ -1,7 +1,10 @@
-package com.example.ContaGest.Auth;
+package com.example.ContaGest.service;
 
 
-import com.example.ContaGest.config.JwtService;
+import com.example.ContaGest.dto.AuthenticationRequest;
+import com.example.ContaGest.dto.AuthenticationResponse;
+import com.example.ContaGest.dto.RegisterRequestAccountant;
+import com.example.ContaGest.dto.RegisterRequestClient;
 import com.example.ContaGest.exception.ResourceNotFoundException;
 import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;

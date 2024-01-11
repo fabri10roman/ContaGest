@@ -1,5 +1,10 @@
-package com.example.ContaGest.Auth;
+package com.example.ContaGest.controller;
 
+import com.example.ContaGest.dto.AuthenticationRequest;
+import com.example.ContaGest.dto.AuthenticationResponse;
+import com.example.ContaGest.dto.RegisterRequestAccountant;
+import com.example.ContaGest.dto.RegisterRequestClient;
+import com.example.ContaGest.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

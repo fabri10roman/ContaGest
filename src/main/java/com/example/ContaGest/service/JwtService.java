@@ -1,4 +1,4 @@
-package com.example.ContaGest.config;
+package com.example.ContaGest.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

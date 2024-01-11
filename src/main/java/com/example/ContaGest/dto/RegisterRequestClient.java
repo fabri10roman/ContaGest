@@ -1,4 +1,4 @@
-package com.example.ContaGest.Auth;
+package com.example.ContaGest.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
