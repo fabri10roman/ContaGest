@@ -2,23 +2,17 @@ package com.example.ContaGest.service;
 
 import com.example.ContaGest.exception.ResourceNotFoundException;
 import com.example.ContaGest.model.InvoiceModel;
-import com.example.ContaGest.repository.AccountantRepository;
 import com.example.ContaGest.repository.InvoiceRepository;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
-import com.itextpdf.layout.borders.Border;
-import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Div;
 import com.itextpdf.layout.element.Image;
-import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.HorizontalAlignment;
-import com.itextpdf.layout.properties.TextAlignment;
-import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.layout.properties.VerticalAlignment;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 
@@ -26,10 +20,9 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AccountantService {
 
-    private final AccountantRepository accountantRepository;
     private final InvoiceRepository invoiceRepository;
 
     public void getPDF (String clientCI,int month,String path) throws FileNotFoundException {

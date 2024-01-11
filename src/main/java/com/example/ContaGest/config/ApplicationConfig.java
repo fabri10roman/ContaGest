@@ -23,24 +23,6 @@ public class ApplicationConfig {
         return globalUserDetailService;
     }
 
-/*
-    @Bean
-    public UserDetailsService userDetailsService(){
-        return username -> {
-
-            Optional<AccountantModel> accountantModel = accountantRepository.findByUsername(username);
-            if(accountantModel.isPresent()){
-                return new User(accountantModel.get().getUsername(),accountantModel.get().getPassword(),new ArrayList<>());
-            }
-            Optional<ClientModel> clientModel = clientRepository.findByUsername(username);
-            if (clientModel.isPresent()){
-                return new User(clientModel.get().getUsername(),clientModel.get().getPassword(),new ArrayList<>());
-            }
-            throw new ResourceNotFoundException("User not found with userCI: " + username);
-        };
-    }
-
- */
     @Bean
     public AuthenticationProvider authenticationProvider (){
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
