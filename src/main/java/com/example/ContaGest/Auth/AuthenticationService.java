@@ -3,11 +3,10 @@ package com.example.ContaGest.Auth;
 
 import com.example.ContaGest.config.JwtService;
 import com.example.ContaGest.exception.ResourceNotFoundException;
-import com.example.ContaGest.model.AccountantModel;
-import com.example.ContaGest.model.ClientModel;
-import com.example.ContaGest.model.Role;
+import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;
 import com.example.ContaGest.repository.ClientRepository;
+import com.example.ContaGest.repository.TokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +23,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final TokenRepository tokenRepository;
     public AuthenticationResponse registerAccountant(RegisterRequestAccountant request) {
         var user = AccountantModel.builder()
                 .userCI(request.getUserCI())
@@ -44,7 +44,16 @@ public class AuthenticationService {
     public AuthenticationResponse authenticateAccountant(AuthenticationRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
         var user = accountantRepository.findByUsername(request.getCi()).orElseThrow();
+        revokeAllAccountantToken(user);
         var jwtToken = jwtService.generateToken(user);
+        var token = TokenModel.builder()
+                .accountant_id(user.getId())
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .expired(false)
+                .revoke(false)
+                .build();
+        tokenRepository.save(token);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
@@ -72,9 +81,42 @@ public class AuthenticationService {
     public AuthenticationResponse authenticateClient(AuthenticationRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
         var user = clientRepository.findByUsername(request.getCi()).orElseThrow();
+        revokeAllClientToken(user);
         var jwtToken = jwtService.generateToken(user);
+        var token = TokenModel.builder()
+                .client_id(user.getId())
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .expired(false)
+                .revoke(false)
+                .build();
+        tokenRepository.save(token);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
+    }
+
+    private void revokeAllClientToken (ClientModel clientModel){
+        var validClientToken = tokenRepository.findAllValidTokensByUser(clientModel.getId());
+        if (validClientToken.isEmpty()){
+            return;
+        }
+        validClientToken.forEach(f -> {
+            f.setRevoke(true);
+            f.setExpired(true);
+        });
+        tokenRepository.saveAll(validClientToken);
+    }
+
+    private void revokeAllAccountantToken (AccountantModel accountantModel){
+        var validAccountantToken = tokenRepository.findAllValidTokensByUser(accountantModel.getId());
+        if (validAccountantToken.isEmpty()){
+            return;
+        }
+        validAccountantToken.forEach(f -> {
+            f.setRevoke(true);
+            f.setExpired(true);
+        });
+        tokenRepository.saveAll(validAccountantToken);
     }
 }

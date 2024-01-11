@@ -2,8 +2,11 @@ package com.example.ContaGest.model;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,13 +27,13 @@ public class ClientModel implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String userCI;
     @Column(nullable = false)
     private String name;
     @Column(nullable = false)
     private String lastname;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
     private String password;
@@ -48,6 +51,16 @@ public class ClientModel implements UserDetails {
 
     @OneToMany(mappedBy = "client")
     private List<InvoiceModel> invoices;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    @Fetch(FetchMode.JOIN)
+    private List<TokenModel> tokens;
+
+    @JsonManagedReference
+    public List<TokenModel> getToken() {
+        return tokens;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

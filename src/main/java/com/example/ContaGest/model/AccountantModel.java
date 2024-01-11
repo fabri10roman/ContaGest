@@ -23,13 +23,13 @@ public class AccountantModel implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String userCI;
     @Column(nullable = false)
     private String name;
     @Column(nullable = false)
     private String lastname;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
     private String password;
@@ -46,6 +46,15 @@ public class AccountantModel implements UserDetails{
     @JsonManagedReference
     public List<ClientModel> getClients() {
         return clients;
+    }
+
+    @OneToMany(mappedBy = "accountant", cascade = CascadeType.ALL)
+    @Fetch(FetchMode.JOIN)
+    private List<TokenModel> tokens;
+
+    @JsonManagedReference
+    public List<TokenModel> getToken() {
+        return tokens;
     }
 
     @Override
