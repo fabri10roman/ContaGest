@@ -31,17 +31,21 @@ public class SecurityConfig {
                 authorizeHttpRequests
                         .requestMatchers(
                                 "/api/v1/auth/register-accountant",
-                                "/api/v1/auth/authenticate-accountant",
-                                "/api/v1/auth/authenticate-client"
+                                "api/v1/auth/login"
                                 ).permitAll()
-                        .requestMatchers("/api/v1/img/**").denyAll()
+                        .requestMatchers(
+                                "/api/v1/img/**",
+                                "/api/v1/auth/authenticate-accountant",
+                                "/api/v1/auth/authenticate-client",
+                                "/api/v1/auth/authenticate-client"
+                        ).denyAll()
                         .requestMatchers(
                                 "/api/v1/auth/register-client",
                                 "/api/v1/accountant/**"
-                                ).hasAuthority(Role.ACCOUNTANT.name())
+                                )
+                        .hasAuthority(Role.ACCOUNTANT.name())
                         .requestMatchers(
-                                "/api/v1/client/**",
-                                "/api/v1/auth/authenticate-client"
+                                "/api/v1/client/**"
                         ).hasAuthority(Role.CLIENT.name())
                         .anyRequest()
                         .authenticated()

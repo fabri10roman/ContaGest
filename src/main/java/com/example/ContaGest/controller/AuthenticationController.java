@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.ContaGest.dto.LoginRequest;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -19,6 +20,10 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
+    @PostMapping("/login")
+    public AuthenticationResponse login(@RequestBody LoginRequest request){
+        return authenticationService.login(request);
+    }
 
     @PostMapping("/register-accountant")
     public ResponseEntity<AuthenticationResponse> registerAccountant(@RequestBody RegisterRequestAccountant request) {
