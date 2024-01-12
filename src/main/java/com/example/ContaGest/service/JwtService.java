@@ -1,25 +1,30 @@
 package com.example.ContaGest.service;
 
+import com.example.ContaGest.model.Role;
+import com.example.ContaGest.repository.TokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.GrantedAuthority;
 
 
 import javax.crypto.SecretKey;
+import java.security.Principal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
 
     private static final String SECRET_KEY = "416c040522a174e75f52d44e1128e2436808f648586b02407260f9dfa46f45b2";
-
+    private final TokenRepository tokenRepository;
     public String getUsername(String token) {
         return getClaim(token, Claims::getSubject);
     }
@@ -71,6 +76,23 @@ public class JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails){
         final String username = getUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public boolean isTokenValid(String token, Principal connectedUser){
+        boolean isTokenValid = tokenRepository.findByToken(token)
+                .map(t -> !t.isExpired() && !t.isRevoke())
+                .orElse(false);
+        if (isTokenValid){
+            String role = getRole(token);
+            if(role.equals(Role.ACCOUNTANT.name())){
+                String username = connectedUser.getName();
+                return getUsername(token).equals(username);
+            }else if (role.equals(Role.CLIENT.name())){
+                String username = connectedUser.getName();
+                return getUsername(token).equals(username);
+            }
+        }
+        return false;
     }
 
     private boolean isTokenExpired(String token) {
