@@ -6,6 +6,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.GrantedAuthority;
 
 
 import javax.crypto.SecretKey;
@@ -23,6 +24,10 @@ public class JwtService {
         return getClaim(token, Claims::getSubject);
     }
 
+    public String getRole(String token){
+        return getClaim(token,claims -> (String) claims.get("Role"));
+    }
+
     public <T> T getClaim (String token, Function<Claims, T> claimsResolver){
         final Claims claims = getALlClaims(token);
         return claimsResolver.apply(claims);
@@ -38,7 +43,13 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails){
-        return generateToken(new HashMap<>(),userDetails);
+        Map<String, Object> claims = new HashMap<>();
+        String role = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+        claims.put("Role", role);
+        return generateToken(claims, userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails){
