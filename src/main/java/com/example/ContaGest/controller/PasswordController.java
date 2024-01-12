@@ -16,7 +16,7 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class PasswordController {
 
-    PasswordService passwordService;
+    private final PasswordService passwordService;
 
     @PatchMapping("/change")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Principal connectedUser){
