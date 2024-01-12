@@ -1,6 +1,5 @@
 package com.example.ContaGest.controller;
 
-import com.example.ContaGest.dto.AuthenticationRequest;
 import com.example.ContaGest.dto.AuthenticationResponse;
 import com.example.ContaGest.dto.RegisterRequestAccountant;
 import com.example.ContaGest.dto.RegisterRequestClient;
@@ -29,16 +28,10 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponse> registerAccountant(@RequestBody RegisterRequestAccountant request) {
         return ResponseEntity.ok(authenticationService.registerAccountant(request));
     }
-    @PostMapping("/authenticate-accountant")
-    public ResponseEntity<AuthenticationResponse> authenticateAccountant(@RequestBody AuthenticationRequest request) {
-        return ResponseEntity.ok(authenticationService.authenticateAccountant(request));
-    }
+
     @PostMapping("/register-client")
     public ResponseEntity<AuthenticationResponse> registerClient(@RequestBody RegisterRequestClient request) {
         return ResponseEntity.ok(authenticationService.registerClient(request));
     }
-    @PostMapping("/authenticate-client")
-    public ResponseEntity<AuthenticationResponse> authenticateClient(@RequestBody AuthenticationRequest request) {
-        return ResponseEntity.ok(authenticationService.authenticateClient(request));
-    }
+
 }
