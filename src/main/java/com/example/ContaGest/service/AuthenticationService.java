@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.example.ContaGest.exception.UserNotFoundException;
 
 
 @Service
@@ -43,7 +44,7 @@ public class AuthenticationService {
 
     public AuthenticationResponse authenticateAccountant(AuthenticationRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
-        var user = accountantRepository.findByUsername(request.getCi()).orElseThrow();
+        var user = accountantRepository.findByUsername(request.getCi()).orElseThrow(()-> new UserNotFoundException(String.format("The username %s not found in the accountant list",request.getCi())));
         revokeAllAccountantToken(user);
         var jwtToken = jwtService.generateToken(user);
         var token = TokenModel.builder()
@@ -80,7 +81,7 @@ public class AuthenticationService {
 
     public AuthenticationResponse authenticateClient(AuthenticationRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
-        var user = clientRepository.findByUsername(request.getCi()).orElseThrow();
+        var user = clientRepository.findByUsername(request.getCi()).orElseThrow(()-> new UserNotFoundException(String.format("The username %s not found in the client list",request.getCi())));
         revokeAllClientToken(user);
         var jwtToken = jwtService.generateToken(user);
         var token = TokenModel.builder()
