@@ -21,8 +21,9 @@ public class TokenModel {
     private String token;
     @Enumerated(EnumType.STRING)
     private TokenType tokenType;
-    private boolean expired;
-    private boolean revoke;
+    private boolean isExpired;
+    private boolean isRevoke;
+    private boolean isRegistration;
     private Integer accountant_id;
     private Integer client_id;
 

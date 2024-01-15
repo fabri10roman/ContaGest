@@ -6,10 +6,7 @@ import com.example.ContaGest.dto.RegisterRequestClient;
 import com.example.ContaGest.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.example.ContaGest.dto.LoginRequest;
 
 @RestController
@@ -27,6 +24,11 @@ public class AuthenticationController {
     @PostMapping("/register-accountant")
     public ResponseEntity<AuthenticationResponse> registerAccountant(@RequestBody RegisterRequestAccountant request) {
         return ResponseEntity.ok(authenticationService.registerAccountant(request));
+    }
+
+    @GetMapping("/confirm-accountant")
+    public ResponseEntity<?> confirmAccountant(@RequestParam("token") String token){
+        return authenticationService.confirmTokenAccountant(token);
     }
 
     @PostMapping("/register-client")

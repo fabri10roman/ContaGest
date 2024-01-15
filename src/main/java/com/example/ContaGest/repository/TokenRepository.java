@@ -14,8 +14,8 @@ public interface TokenRepository extends JpaRepository<TokenModel,Integer> {
 
 
     @Query("SELECT f FROM TokenModel f WHERE " +
-            "(f.client.id=:userId AND f.expired=false AND f.revoke=false) " +
-            "OR (f.accountant.id=:userId AND f.expired=false AND f.revoke=false)")
+            "(f.client.id=:userId AND f.isExpired=false AND f.isRevoke=false) " +
+            "OR (f.accountant.id=:userId AND f.isExpired=false AND f.isRevoke=false)")
     List<TokenModel> findAllValidTokensByUser(@Param("userId") Integer userId);
 
 

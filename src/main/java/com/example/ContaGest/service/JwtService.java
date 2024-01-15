@@ -47,6 +47,24 @@ public class JwtService {
                 .getPayload();
     }
 
+    public String generateTokenRegistration(UserDetails userDetails){
+        int timeMillis = 900000; //15min
+        Map<String, Object> claims = new HashMap<>();
+        String role = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+        claims.put("Role", role);
+        return Jwts
+                .builder()
+                .claims().empty().add(claims).and()
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + timeMillis))
+                .signWith(getSiginKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
     public String generateToken(UserDetails userDetails){
         Map<String, Object> claims = new HashMap<>();
         String role = userDetails.getAuthorities().stream()
@@ -58,12 +76,13 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails){
+        int timeMillis = 86400000; //24hours
         return Jwts
                 .builder()
                 .claims().empty().add(extraClaims).and()
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 240))
+                .expiration(new Date(System.currentTimeMillis() + timeMillis))
                 .signWith(getSiginKey(), Jwts.SIG.HS256)
                 .compact();
     }
@@ -95,7 +114,7 @@ public class JwtService {
         return false;
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         return getExpiration(token).before(new Date());
     }
 

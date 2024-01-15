@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.NaturalId;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,13 +28,13 @@ public class ClientModel implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(nullable = false, unique = true)
+    @NaturalId(mutable = true)
     private String userCI;
     @Column(nullable = false)
     private String name;
     @Column(nullable = false)
     private String lastname;
-    @Column(nullable = false, unique = true)
+    @NaturalId(mutable = true)
     private String email;
     @Column(nullable = false)
     private String password;
@@ -41,7 +42,7 @@ public class ClientModel implements UserDetails {
     private Role role;
     @Column(nullable = false)
     private Integer number;
-    private Boolean isEnable;
+    private boolean isEnable;
     private Integer accountant_id;
 
 
