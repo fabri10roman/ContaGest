@@ -43,6 +43,7 @@ public class ClientModel implements UserDetails {
     @Column(nullable = false)
     private Integer number;
     private boolean isEnable = false;
+    private boolean isConfirmed = false;
     private Integer accountant_id;
 
 

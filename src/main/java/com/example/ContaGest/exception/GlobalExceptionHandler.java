@@ -18,4 +18,9 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleUserNotFoundException(UserNotFoundException e){
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
     }
+
+    @ExceptionHandler(AccountNotVerifiedException.class)
+    public ProblemDetail handleAccountNotVerifiedException(AccountNotVerifiedException e){
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
 }

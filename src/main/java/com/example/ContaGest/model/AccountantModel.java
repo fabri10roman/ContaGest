@@ -39,6 +39,7 @@ public class AccountantModel implements UserDetails{
     @Column(nullable = false)
     private Integer number;
     private boolean isEnable = false;
+    private boolean isConfirmed = false;
 
     @OneToMany(mappedBy = "accountant", cascade = CascadeType.ALL)
     @Fetch(FetchMode.JOIN)

@@ -3,6 +3,7 @@ package com.example.ContaGest.service;
 
 import com.example.ContaGest.dto.*;
 import com.example.ContaGest.email.EmailSender;
+import com.example.ContaGest.exception.AccountNotVerifiedException;
 import com.example.ContaGest.exception.ResourceNotFoundException;
 import com.example.ContaGest.exception.UserAlreadyExistsException;
 import com.example.ContaGest.model.*;
@@ -39,16 +40,18 @@ public class AuthenticationService {
 
         if(accountantModel.isPresent()){
             AccountantModel accountant = accountantModel.get();
-            if (accountant.getEmail().equals(request.getEmail()) && accountant.getName().equals(request.getName())
-                && accountant.getLastname().equals(request.getLastname()) && accountant.getUserCI().equals(request.getUserCI())
-                && accountant.getNumber().equals(request.getNumber())
-                && passwordEncoder.matches(request.getPassword(),accountant.getPassword()) && !accountant.isEnable()
-            ){
-                revokeAllAccountantToken(accountant);
-                String jwtToken = GenerateTokenAndSendEmailRegisterAccountant(accountant);
-                return AuthenticationResponse.builder()
-                        .token(jwtToken)
-                        .build();
+            if (!accountant.isConfirmed()){
+                if (accountant.getEmail().equals(request.getEmail()) && accountant.getName().equals(request.getName())
+                        && accountant.getLastname().equals(request.getLastname()) && accountant.getUserCI().equals(request.getUserCI())
+                        && accountant.getNumber().equals(request.getNumber())
+                        && passwordEncoder.matches(request.getPassword(),accountant.getPassword())
+                ){
+                    revokeAllAccountantToken(accountant);
+                    String jwtToken = GenerateTokenAndSendEmailRegisterAccountant(accountant);
+                    return AuthenticationResponse.builder()
+                            .token(jwtToken)
+                            .build();
+                }
             }
             throw new UserAlreadyExistsException(String.format("Accountant with username %s already taken",request.getUserCI()));
         }
@@ -61,6 +64,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.ACCOUNTANT)
                 .isEnable(false)
+                .isConfirmed(false)
                 .build();
         accountantRepository.save(user);
         String jwtToken = GenerateTokenAndSendEmailRegisterAccountant(user);
@@ -104,6 +108,7 @@ public class AuthenticationService {
         AccountantModel accountantModel = accountantRepository.findByUsername(username).
                 orElseThrow(() -> new UserNotFoundException(String.format("User with username %s not found",username)));
         accountantModel.setEnable(true);
+        accountantModel.setConfirmed(true);
         tokenModel.setRevoke(true);
         tokenModel.setExpired(true);
         accountantRepository.save(accountantModel);
@@ -112,7 +117,11 @@ public class AuthenticationService {
 
     private AuthenticationResponse authenticateAccountant(AuthenticationRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
-        var user = accountantRepository.findByUsername(request.getCi()).orElseThrow(()-> new UserNotFoundException(String.format("The username %s not found in the accountant list",request.getCi())));
+        var user = accountantRepository.findByUsername(request.getCi()).
+                orElseThrow(()-> new UserNotFoundException(String.format("The username %s not found in the accountant list",request.getCi())));
+        if (!user.isConfirmed()){
+            throw new AccountNotVerifiedException(String.format("The email %s is not confirmed",user.getEmail()));
+        }
         revokeAllAccountantToken(user);
         var jwtToken = jwtService.generateToken(user);
         var token = TokenModel.builder()
@@ -135,20 +144,20 @@ public class AuthenticationService {
 
         if(clientModel.isPresent()){
             ClientModel client = clientModel.get();
-            if (client.getEmail().equals(request.getEmail()) && client.getName().equals(request.getName())
-                    && client.getLastname().equals(request.getLastname()) && client.getUserCI().equals(request.getUserCI())
-                    && client.getNumber().equals(request.getNumber())
-                    && !client.isEnable()
-            ){
-                revokeAllClientToken(client);
-                String jwtToken = GenerateTokenAndSendEmailRegisterClient(client);
-                return AuthenticationResponse.builder()
-                        .token(jwtToken)
-                        .build();
+            if (!client.isConfirmed()){
+                if (client.getEmail().equals(request.getEmail()) && client.getName().equals(request.getName())
+                        && client.getLastname().equals(request.getLastname()) && client.getUserCI().equals(request.getUserCI())
+                        && client.getNumber().equals(request.getNumber())
+                ){
+                    revokeAllClientToken(client);
+                    String jwtToken = GenerateTokenAndSendEmailRegisterClient(client);
+                    return AuthenticationResponse.builder()
+                            .token(jwtToken)
+                            .build();
+                }
             }
             throw new UserAlreadyExistsException(String.format("Accountant with username %s already taken",request.getUserCI()));
         }
-
         String token = request.getToken();
         String accountantUsername = jwtService.getUsername(token);
         AccountantModel accountant = accountantRepository.findByUsername(accountantUsername)
@@ -162,6 +171,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getUserCI()))
                 .role(Role.CLIENT)
                 .isEnable(false)
+                .isConfirmed(false)
                 .accountant_id(accountant.getId())
                 .build();
         clientRepository.save(user);
@@ -207,6 +217,7 @@ public class AuthenticationService {
         ClientModel clientModel = clientRepository.findByUsername(username).
                 orElseThrow(() -> new UserNotFoundException(String.format("User with username %s not found",username)));
         clientModel.setEnable(true);
+        clientModel.setConfirmed(true);
         tokenModel.setRevoke(true);
         tokenModel.setExpired(true);
         clientRepository.save(clientModel);
@@ -215,7 +226,11 @@ public class AuthenticationService {
 
     private AuthenticationResponse authenticateClient(AuthenticationRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
-        var user = clientRepository.findByUsername(request.getCi()).orElseThrow(()-> new UserNotFoundException(String.format("The username %s not found in the client list",request.getCi())));
+        var user = clientRepository.findByUsername(request.getCi())
+                .orElseThrow(()-> new UserNotFoundException(String.format("The username %s not found in the client list",request.getCi())));
+        if (!user.isConfirmed()){
+            throw new AccountNotVerifiedException(String.format("The email %s is not confirmed",user.getEmail()));
+        }
         revokeAllClientToken(user);
         var jwtToken = jwtService.generateToken(user);
         var token = TokenModel.builder()
