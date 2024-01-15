@@ -70,7 +70,7 @@ public class AuthenticationService {
     }
 
     private String GenerateTokenAndSendEmailRegisterAccountant(AccountantModel accountant){
-        var jwtToken = jwtService.generateTokenRegistration(accountant);
+        var jwtToken = jwtService.generateTokenRegistrationAccountant(accountant);
         var token = TokenModel.builder()
                 .accountant_id(accountant.getId())
                 .token(jwtToken)
@@ -100,15 +100,179 @@ public class AuthenticationService {
             tokenRepository.save(tokenModel);
             throw new IllegalStateException("Token expired");
         }
-        tokenModel.setRevoke(true);
-        tokenModel.setExpired(true);
         String username = jwtService.getUsername(token);
         AccountantModel accountantModel = accountantRepository.findByUsername(username).
                 orElseThrow(() -> new UserNotFoundException(String.format("User with username %s not found",username)));
-
         accountantModel.setEnable(true);
+        tokenModel.setRevoke(true);
+        tokenModel.setExpired(true);
         accountantRepository.save(accountantModel);
         return ResponseEntity.ok("Confirmed");
+    }
+
+    private AuthenticationResponse authenticateAccountant(AuthenticationRequest request) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
+        var user = accountantRepository.findByUsername(request.getCi()).orElseThrow(()-> new UserNotFoundException(String.format("The username %s not found in the accountant list",request.getCi())));
+        revokeAllAccountantToken(user);
+        var jwtToken = jwtService.generateToken(user);
+        var token = TokenModel.builder()
+                .accountant_id(user.getId())
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .isExpired(false)
+                .isRevoke(false)
+                .isRegistration(false)
+                .build();
+        tokenRepository.save(token);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
+    }
+
+    public AuthenticationResponse registerClient(RegisterRequestClient request) {
+
+        Optional<ClientModel> clientModel = clientRepository.findByUsername(request.getUserCI());
+
+        if(clientModel.isPresent()){
+            ClientModel client = clientModel.get();
+            if (client.getEmail().equals(request.getEmail()) && client.getName().equals(request.getName())
+                    && client.getLastname().equals(request.getLastname()) && client.getUserCI().equals(request.getUserCI())
+                    && client.getNumber().equals(request.getNumber())
+                    && !client.isEnable()
+            ){
+                revokeAllClientToken(client);
+                String jwtToken = GenerateTokenAndSendEmailRegisterClient(client);
+                return AuthenticationResponse.builder()
+                        .token(jwtToken)
+                        .build();
+            }
+            throw new UserAlreadyExistsException(String.format("Accountant with username %s already taken",request.getUserCI()));
+        }
+
+        String token = request.getToken();
+        String accountantUsername = jwtService.getUsername(token);
+        AccountantModel accountant = accountantRepository.findByUsername(accountantUsername)
+                .orElseThrow(()->new UserNotFoundException(String.format("Accountant with username %s not found",accountantUsername)));
+        var user = ClientModel.builder()
+                .userCI(request.getUserCI())
+                .email(request.getEmail())
+                .name(request.getName())
+                .lastname(request.getLastname())
+                .number(request.getNumber())
+                .password(passwordEncoder.encode(request.getUserCI()))
+                .role(Role.CLIENT)
+                .isEnable(false)
+                .accountant_id(accountant.getId())
+                .build();
+        clientRepository.save(user);
+        String jwtToken = GenerateTokenAndSendEmailRegisterClient(user);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
+    }
+
+    private String GenerateTokenAndSendEmailRegisterClient(ClientModel client){
+        var jwtToken = jwtService.generateTokenRegistrationClient(client);
+        var token = TokenModel.builder()
+                .client_id(client.getId())
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .isExpired(false)
+                .isRevoke(false)
+                .isRegistration(true)
+                .build();
+        tokenRepository.save(token);
+        String link = "http://localhost:8080/api/v1/auth/confirm-client?token=" + jwtToken;
+        emailSender.send(client.getEmail(),buildEmail(client.getName(),link));
+        return jwtToken;
+    }
+
+    @Transactional
+    public ResponseEntity<?> confirmTokenClient (String token) {
+        TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
+        if (!tokenModel.isRegistration()) {
+            throw new UserAlreadyExistsException("Email already confirmed");
+        }
+        if (tokenModel.isExpired() && tokenModel.isRevoke()) {
+            throw new IllegalStateException("Token expired");
+        }
+        if (jwtService.isTokenExpired(token)){
+            tokenModel.setRevoke(true);
+            tokenModel.setExpired(true);
+            tokenRepository.save(tokenModel);
+            throw new IllegalStateException("Token expired");
+        }
+
+        String username = jwtService.getUsername(token);
+        ClientModel clientModel = clientRepository.findByUsername(username).
+                orElseThrow(() -> new UserNotFoundException(String.format("User with username %s not found",username)));
+        clientModel.setEnable(true);
+        tokenModel.setRevoke(true);
+        tokenModel.setExpired(true);
+        clientRepository.save(clientModel);
+        return ResponseEntity.ok("Confirmed");
+    }
+
+    private AuthenticationResponse authenticateClient(AuthenticationRequest request) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
+        var user = clientRepository.findByUsername(request.getCi()).orElseThrow(()-> new UserNotFoundException(String.format("The username %s not found in the client list",request.getCi())));
+        revokeAllClientToken(user);
+        var jwtToken = jwtService.generateToken(user);
+        var token = TokenModel.builder()
+                .client_id(user.getId())
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .isExpired(false)
+                .isRevoke(false)
+                .isRegistration(false)
+                .build();
+        tokenRepository.save(token);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
+    }
+
+    private void revokeAllClientToken (ClientModel clientModel){
+        var validClientToken = tokenRepository.findAllValidTokensByUser(clientModel.getId());
+        if (validClientToken.isEmpty()){
+            return;
+        }
+        validClientToken.forEach(f -> {
+            f.setRevoke(true);
+            f.setExpired(true);
+        });
+        tokenRepository.saveAll(validClientToken);
+    }
+
+    private void revokeAllAccountantToken (AccountantModel accountantModel){
+        var validAccountantToken = tokenRepository.findAllValidTokensByUser(accountantModel.getId());
+        if (validAccountantToken.isEmpty()){
+            return;
+        }
+        validAccountantToken.forEach(f -> {
+            f.setRevoke(true);
+            f.setExpired(true);
+        });
+        tokenRepository.saveAll(validAccountantToken);
+    }
+
+    public AuthenticationResponse login(LoginRequest loginRequest){
+        String role = loginRequest.getRole().name();
+
+        if (role.equals(Role.ACCOUNTANT.name())){
+            AuthenticationRequest authenticationRequest = new AuthenticationRequest();
+            authenticationRequest.setCi(loginRequest.getCi());
+            authenticationRequest.setPassword(loginRequest.getPassword());
+            return authenticateAccountant(authenticationRequest);
+        }
+        if (role.equals(Role.CLIENT.name())){
+            AuthenticationRequest authenticationRequest = new AuthenticationRequest();
+            authenticationRequest.setCi(loginRequest.getCi());
+            authenticationRequest.setPassword(loginRequest.getPassword());
+            return authenticateClient(authenticationRequest);
+        }
+
+        throw new RuntimeException();
     }
 
     private String buildEmail(String name, String link) {
@@ -178,104 +342,5 @@ public class AuthenticationService {
                 "  </tbody></table><div class=\"yj6qo\"></div><div class=\"adL\">\n" +
                 "\n" +
                 "</div></div>";
-    }
-    public AuthenticationResponse authenticateAccountant(AuthenticationRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
-        var user = accountantRepository.findByUsername(request.getCi()).orElseThrow(()-> new UserNotFoundException(String.format("The username %s not found in the accountant list",request.getCi())));
-        revokeAllAccountantToken(user);
-        var jwtToken = jwtService.generateToken(user);
-        var token = TokenModel.builder()
-                .accountant_id(user.getId())
-                .token(jwtToken)
-                .tokenType(TokenType.BEARER)
-                .isExpired(false)
-                .isRevoke(false)
-                .isRegistration(false)
-                .build();
-        tokenRepository.save(token);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
-    }
-
-    public AuthenticationResponse registerClient(RegisterRequestClient request) {
-        AccountantModel accountant = accountantRepository.findByUsername(request.getAccountCI()).orElseThrow(()-> new ResourceNotFoundException("Accountant not found"));
-        var user = ClientModel.builder()
-                .userCI(request.getUserCI())
-                .email(request.getEmail())
-                .name(request.getName())
-                .lastname(request.getLastname())
-                .number(request.getNumber())
-                .password(passwordEncoder.encode(request.getUserCI()))
-                .role(Role.CLIENT)
-                .accountant_id(accountant.getId())
-                .build();
-        clientRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
-    }
-
-    public AuthenticationResponse authenticateClient(AuthenticationRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
-        var user = clientRepository.findByUsername(request.getCi()).orElseThrow(()-> new UserNotFoundException(String.format("The username %s not found in the client list",request.getCi())));
-        revokeAllClientToken(user);
-        var jwtToken = jwtService.generateToken(user);
-        var token = TokenModel.builder()
-                .client_id(user.getId())
-                .token(jwtToken)
-                .tokenType(TokenType.BEARER)
-                .isExpired(false)
-                .isRevoke(false)
-                .isRegistration(false)
-                .build();
-        tokenRepository.save(token);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
-    }
-
-    private void revokeAllClientToken (ClientModel clientModel){
-        var validClientToken = tokenRepository.findAllValidTokensByUser(clientModel.getId());
-        if (validClientToken.isEmpty()){
-            return;
-        }
-        validClientToken.forEach(f -> {
-            f.setRevoke(true);
-            f.setExpired(true);
-        });
-        tokenRepository.saveAll(validClientToken);
-    }
-
-    private void revokeAllAccountantToken (AccountantModel accountantModel){
-        var validAccountantToken = tokenRepository.findAllValidTokensByUser(accountantModel.getId());
-        if (validAccountantToken.isEmpty()){
-            return;
-        }
-        validAccountantToken.forEach(f -> {
-            f.setRevoke(true);
-            f.setExpired(true);
-        });
-        tokenRepository.saveAll(validAccountantToken);
-    }
-
-    public AuthenticationResponse login(LoginRequest loginRequest){
-        String role = loginRequest.getRole().name();
-
-        if (role.equals(Role.ACCOUNTANT.name())){
-            AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-            authenticationRequest.setCi(loginRequest.getCi());
-            authenticationRequest.setPassword(loginRequest.getPassword());
-            return authenticateAccountant(authenticationRequest);
-        }
-        if (role.equals(Role.CLIENT.name())){
-            AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-            authenticationRequest.setCi(loginRequest.getCi());
-            authenticationRequest.setPassword(loginRequest.getPassword());
-            return authenticateClient(authenticationRequest);
-        }
-
-        throw new RuntimeException();
     }
 }

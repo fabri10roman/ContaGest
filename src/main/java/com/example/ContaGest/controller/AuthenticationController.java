@@ -31,6 +31,11 @@ public class AuthenticationController {
         return authenticationService.confirmTokenAccountant(token);
     }
 
+    @GetMapping("/confirm-client")
+    public ResponseEntity<?> confirmClient(@RequestParam("token") String token){
+        return authenticationService.confirmTokenClient(token);
+    }
+
     @PostMapping("/register-client")
     public ResponseEntity<AuthenticationResponse> registerClient(@RequestBody RegisterRequestClient request) {
         return ResponseEntity.ok(authenticationService.registerClient(request));

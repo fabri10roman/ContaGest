@@ -42,7 +42,7 @@ public class ClientModel implements UserDetails {
     private Role role;
     @Column(nullable = false)
     private Integer number;
-    private boolean isEnable;
+    private boolean isEnable = false;
     private Integer accountant_id;
 
 
@@ -93,7 +93,7 @@ public class ClientModel implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return isEnable;
     }
 
 }
