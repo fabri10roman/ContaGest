@@ -13,4 +13,7 @@ public interface AccountantRepository extends JpaRepository<AccountantModel,Inte
 
     @Query("SELECT f FROM AccountantModel f WHERE f.userCI=:userCI")
     Optional<AccountantModel> findByUsername(@Param("userCI") String userCI);
+
+    @Query("SELECT f FROM AccountantModel f WHERE f.email=:email")
+    Optional<AccountantModel> findByEmail(@Param("email") String email);
 }

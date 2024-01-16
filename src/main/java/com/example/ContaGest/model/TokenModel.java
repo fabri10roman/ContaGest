@@ -24,6 +24,7 @@ public class TokenModel {
     private boolean isExpired;
     private boolean isRevoke;
     private boolean isRegistration;
+    private boolean isForgotPassword;
     private Integer accountant_id;
     private Integer client_id;
 

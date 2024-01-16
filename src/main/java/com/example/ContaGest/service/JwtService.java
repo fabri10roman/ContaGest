@@ -65,6 +65,24 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateTokenForgotPassword(UserDetails userDetails){
+        int timeMillis = 900000; //15min
+        Map<String, Object> claims = new HashMap<>();
+        String role = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+        claims.put("Role", role);
+        return Jwts
+                .builder()
+                .claims().empty().add(claims).and()
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + timeMillis))
+                .signWith(getSiginKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
     public String generateTokenRegistrationClient(UserDetails userDetails){
         int timeMillis = 900000*8; //2 hours
         Map<String, Object> claims = new HashMap<>();
