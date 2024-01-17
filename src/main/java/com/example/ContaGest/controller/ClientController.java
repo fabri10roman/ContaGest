@@ -17,7 +17,7 @@ public class ClientController {
 
     @PostMapping("/save-img")
     public void saveImage(SaveImage saveImage) throws IOException {
-        clientService.saveImage(saveImage.getClientCI(), saveImage.getMonth(), saveImage.getFile().getBytes(), saveImage.getYear());
+        clientService.saveImage(saveImage.getMonth(), saveImage.getFile().getBytes(), saveImage.getYear(),saveImage.getToken());
     }
 
     @DeleteMapping("/delete-img/{imgID}")

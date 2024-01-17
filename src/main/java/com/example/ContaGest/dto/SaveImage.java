@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class SaveImage {
 
     private MultipartFile file;
-    private String clientCI;
     private int month;
     private int year;
+    private String token;
 }
