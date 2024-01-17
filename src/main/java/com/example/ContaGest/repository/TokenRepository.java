@@ -30,9 +30,9 @@ public interface TokenRepository extends JpaRepository<TokenModel,Integer> {
     List<String> findTokenRegisterAccountantByAccountantId(@Param("id") Integer id);
 
     @Query("SELECT f FROM TokenModel f WHERE f.isForgotPassword=true AND f.isRevoke=false AND f.isRevoke=false AND f.client_id=:id")
-    Optional<TokenModel> findTokenForgotPasswordClientByClientID(@Param("id") Integer id);
+    List<TokenModel> findTokenForgotPasswordClientByClientID(@Param("id") Integer id);
 
     @Query("SELECT f FROM TokenModel f WHERE f.isForgotPassword=true AND f.isRevoke=false AND f.isRevoke=false AND f.accountant_id=:id")
-    Optional<TokenModel> findTokenForgotPasswordAccountantByAccountantID(@Param("id") Integer id);
+    List<TokenModel> findTokenForgotPasswordAccountantByAccountantID(@Param("id") Integer id);
 
 }

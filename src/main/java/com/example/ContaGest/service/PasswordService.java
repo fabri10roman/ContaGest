@@ -3,12 +3,14 @@ package com.example.ContaGest.service;
 import com.example.ContaGest.dto.ChangePasswordRequest;
 import com.example.ContaGest.dto.ForgotPasswordConfirmRequest;
 import com.example.ContaGest.dto.ForgotPasswordRequest;
+import com.example.ContaGest.exception.AlreadySendEmailException;
 import com.example.ContaGest.exception.ResourceNotFoundException;
 import com.example.ContaGest.exception.UserNotFoundException;
 import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;
 import com.example.ContaGest.repository.ClientRepository;
 import com.example.ContaGest.repository.TokenRepository;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -87,27 +89,31 @@ public class PasswordService {
         if (role.equals(Role.CLIENT.name())){
             ClientModel client = clientRepository.findByEmail(email)
                     .orElseThrow(() -> new UserNotFoundException(String.format("Client with %s email not found",email)));
-            List<String> jwtToken = tokenRepository.findTokenRegisterClientByClientId(client.getId());
-            if (jwtToken.isEmpty()){
-                throw new ResourceNotFoundException(String.format("The token forgot password of the client with email %s not found",email));
-            }
-            Optional<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordClientByClientID(client.getId());
-            if (tokenModel.isPresent()){
-                throw new IllegalStateException("We already sent you a email to change you password");
-            }
+            List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordClientByClientID(client.getId());
+            CheckForgotToken(tokenModel);
             return GenerateTokenAndSendEmailForgotPasswordClient(client);
         }
         AccountantModel accountant = accountantRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(String.format("Accountant with %s email not found",email)));
-        List<String> jwtToken = tokenRepository.findTokenRegisterAccountantByAccountantId(accountant.getId());
-        if (jwtToken.isEmpty()){
-            throw new ResourceNotFoundException(String.format("The token forgot password of the accountant with email %s not found",email));
-        }
-        Optional<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordAccountantByAccountantID(accountant.getId());
-        if (tokenModel.isPresent()){
-            throw new IllegalStateException("We already sent you a email to change you password");
-        }
+        List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordAccountantByAccountantID(accountant.getId());
+        CheckForgotToken(tokenModel);
         return GenerateTokenAndSendEmailForgotPasswordAccountant(accountant);
+    }
+
+    private void CheckForgotToken(List<TokenModel> tokenModel) {
+        if (!tokenModel.isEmpty()){
+            for (TokenModel token : tokenModel){
+                try {
+                    String jwtToken = token.getToken();
+                    String username = jwtService.getUsername(jwtToken);
+                    throw new AlreadySendEmailException("Email already send before, please check your email");
+                }catch (JwtException e){
+                    token.setRevoke(true);
+                    token.setExpired(true);
+                    tokenRepository.save(token);
+                }
+            }
+        }
     }
 
     private String GenerateTokenAndSendEmailForgotPasswordAccountant(AccountantModel accountant){

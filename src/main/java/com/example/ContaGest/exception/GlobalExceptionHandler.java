@@ -23,4 +23,8 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleAccountNotVerifiedException(AccountNotVerifiedException e){
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
+    @ExceptionHandler(AlreadySendEmailException.class)
+    public ProblemDetail handleIllegalStateException(AlreadySendEmailException e){
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
 }
