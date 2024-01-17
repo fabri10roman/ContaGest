@@ -43,8 +43,8 @@ public class AuthenticationService {
             AccountantModel accountant = accountantModel.get();
             if (!accountant.isConfirmed()){
                 if (accountant.getEmail().equals(request.getEmail()) && accountant.getName().equals(request.getName())
-                        && accountant.getLastname().equals(request.getLastname()) && accountant.getUserCI().equals(request.getUserCI())
-                        && accountant.getNumber().equals(request.getNumber())
+                        && accountant.getLastname().equals(request.getLastname()) && accountant.getCi().equals(request.getUserCI())
+                        && accountant.getPhoneNumber().equals(request.getNumber())
                         && passwordEncoder.matches(request.getPassword(),accountant.getPassword())
                 ){
                     revokeAllAccountantToken(accountant);
@@ -57,11 +57,11 @@ public class AuthenticationService {
             throw new UserAlreadyExistsException(String.format("Accountant with username %s already taken",request.getUserCI()));
         }
         var user = AccountantModel.builder()
-                .userCI(request.getUserCI())
+                .ci(request.getUserCI())
                 .email(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())
-                .number(request.getNumber())
+                .phoneNumber(request.getNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.ACCOUNTANT)
                 .isEnable(false)
@@ -147,8 +147,8 @@ public class AuthenticationService {
             ClientModel client = clientModel.get();
             if (!client.isConfirmed()){
                 if (client.getEmail().equals(request.getEmail()) && client.getName().equals(request.getName())
-                        && client.getLastname().equals(request.getLastname()) && client.getUserCI().equals(request.getUserCI())
-                        && client.getNumber().equals(request.getNumber())
+                        && client.getLastname().equals(request.getLastname()) && client.getCi().equals(request.getUserCI())
+                        && client.getPhoneNumber().equals(request.getNumber())
                 ){
                     revokeAllClientToken(client);
                     String jwtToken = GenerateTokenAndSendEmailRegisterClient(client);
@@ -163,11 +163,11 @@ public class AuthenticationService {
                 .orElseThrow(()->new UserNotFoundException(String.format("Accountant with username %s not found",accountantUsername)));
         String pw = request.getUserCI() + "_" + generateRandomPassword();
         var user = ClientModel.builder()
-                .userCI(request.getUserCI())
+                .ci(request.getUserCI())
                 .email(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())
-                .number(request.getNumber())
+                .phoneNumber(request.getNumber())
                 .password(passwordEncoder.encode(pw))
                 .role(Role.CLIENT)
                 .isEnable(false)

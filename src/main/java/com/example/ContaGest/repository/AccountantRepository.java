@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface AccountantRepository extends JpaRepository<AccountantModel,Integer> {
 
-    @Query("SELECT f FROM AccountantModel f WHERE f.userCI=:userCI")
+    @Query("SELECT f FROM AccountantModel f WHERE f.ci=:userCI")
     Optional<AccountantModel> findByUsername(@Param("userCI") String userCI);
 
     @Query("SELECT f FROM AccountantModel f WHERE f.email=:email")

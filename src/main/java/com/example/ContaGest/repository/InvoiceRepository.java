@@ -11,12 +11,12 @@ import java.util.List;
 @Repository
 public interface InvoiceRepository extends JpaRepository<InvoiceModel,Integer>{
 
-    @Query("SELECT f FROM InvoiceModel f WHERE f.client.userCI =:clientCI AND f.month =:month AND f.year =:year")
+    @Query("SELECT f FROM InvoiceModel f WHERE f.client.ci =:clientCI AND f.month =:month AND f.year =:year")
     List<InvoiceModel> findByClientIdAndMonthAndYear(@Param("clientCI") String clientCI, @Param("month") int month, @Param("year") int year);
 
-    @Query("SELECT f.id FROM InvoiceModel f WHERE f.client.userCI =:clientCI AND f.year =:year")
+    @Query("SELECT f.id FROM InvoiceModel f WHERE f.client.ci =:clientCI AND f.year =:year")
     List<Integer> findIdByClientCI (@Param("clientCI") String clientCI, @Param("year") int year);
 
-    @Query("SELECT f.id FROM InvoiceModel f WHERE f.client.userCI =:clientCI AND f.month =:month AND f.year =:year")
+    @Query("SELECT f.id FROM InvoiceModel f WHERE f.client.ci =:clientCI AND f.month =:month AND f.year =:year")
     List<Integer> findIdByClientCiAndMonthAndYear(@Param("clientCI") String clientCI, @Param("month") int month , @Param("year") int year);
 }

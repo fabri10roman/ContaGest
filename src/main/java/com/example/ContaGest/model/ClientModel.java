@@ -28,20 +28,22 @@ public class ClientModel implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @NaturalId(mutable = true)
-    private String userCI;
+    @NaturalId()
+    @Column(nullable = false, unique = true)
+    private String ci;
     @Column(nullable = false)
     private String name;
     @Column(nullable = false)
     private String lastname;
     @NaturalId(mutable = true)
+    @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
     private String password;
     @Enumerated(EnumType.STRING)
     private Role role;
     @Column(nullable = false)
-    private Integer number;
+    private Integer phoneNumber;
     private boolean isEnable = false;
     private boolean isConfirmed = false;
     private Integer accountant_id;
@@ -75,7 +77,7 @@ public class ClientModel implements UserDetails {
 
     @Override
     public String getUsername() {
-        return userCI;
+        return ci;
     }
     @Override
     public boolean isAccountNonExpired() {

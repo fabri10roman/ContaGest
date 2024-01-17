@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface ClientRepository extends JpaRepository<ClientModel,Integer> {
 
-    @Query("SELECT f FROM ClientModel f WHERE f.userCI=:userCI")
+    @Query("SELECT f FROM ClientModel f WHERE f.ci=:userCI")
     Optional<ClientModel> findByUsername(@Param("userCI") String userCI);
 
     @Query("SELECT f FROM ClientModel f WHERE f.email=:email")
