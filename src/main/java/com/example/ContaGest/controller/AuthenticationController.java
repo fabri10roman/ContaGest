@@ -37,7 +37,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register-client")
-    public ResponseEntity<AuthenticationResponse> registerClient(@RequestBody RegisterRequestClient request) {
+    public ResponseEntity<String> registerClient(@RequestBody RegisterRequestClient request) {
         return ResponseEntity.ok(authenticationService.registerClient(request));
     }
 

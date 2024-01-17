@@ -15,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.security.SecureRandom;
 
 import java.security.Principal;
 import java.util.List;
@@ -31,6 +32,10 @@ public class PasswordService {
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
     private final AuthenticationService authenticationService;
+
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final String ALLOWED_CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÑabcdefghijklmnopqrstuvwxyzñ";
+
     public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
 
         String jwt = request.getToken();
@@ -173,5 +178,14 @@ public class PasswordService {
             authenticationService.revokeAllAccountantToken(accountant);
         }
         return ResponseEntity.ok("Confirmed");
+    }
+
+    public static String generateRandomPassword() {
+        int length = 5;
+        StringBuilder password = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            password.append(ALLOWED_CHARACTERS.charAt(RANDOM.nextInt(ALLOWED_CHARACTERS.length())));
+        }
+        return password.toString();
     }
 }

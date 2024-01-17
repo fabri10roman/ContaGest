@@ -38,10 +38,10 @@ public class SecurityConfig {
                                 "api/v1/auth/confirm-accountant",
                                 "api/v1/auth/confirm-client",
                                 "api/v1/password/confirm-forgot-password",
-                                "api/v1/password/password-forgot"
+                                "api/v1/password/password-forgot",
+                                "/api/v1/img/**"
                                 ).permitAll()
                         .requestMatchers(
-                                "/api/v1/img/**",
                                 "/api/v1/auth/authenticate-accountant",
                                 "/api/v1/auth/authenticate-client",
                                 "/api/v1/auth/authenticate-client"

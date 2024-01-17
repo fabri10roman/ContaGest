@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+import static com.example.ContaGest.service.PasswordService.generateRandomPassword;
+
 
 @Service
 @RequiredArgsConstructor
@@ -137,7 +139,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    public AuthenticationResponse registerClient(RegisterRequestClient request) {
+    public String registerClient(RegisterRequestClient request) {
 
         Optional<ClientModel> clientModel = clientRepository.findByUsername(request.getUserCI());
 
@@ -150,9 +152,7 @@ public class AuthenticationService {
                 ){
                     revokeAllClientToken(client);
                     String jwtToken = GenerateTokenAndSendEmailRegisterClient(client);
-                    return AuthenticationResponse.builder()
-                            .token(jwtToken)
-                            .build();
+                    return "Check your email";
                 }
             }
             throw new UserAlreadyExistsException(String.format("Accountant with username %s already taken",request.getUserCI()));
@@ -161,13 +161,14 @@ public class AuthenticationService {
         String accountantUsername = jwtService.getUsername(token);
         AccountantModel accountant = accountantRepository.findByUsername(accountantUsername)
                 .orElseThrow(()->new UserNotFoundException(String.format("Accountant with username %s not found",accountantUsername)));
+        String pw = request.getUserCI() + "_" + generateRandomPassword();
         var user = ClientModel.builder()
                 .userCI(request.getUserCI())
                 .email(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())
                 .number(request.getNumber())
-                .password(passwordEncoder.encode(request.getUserCI()))
+                .password(passwordEncoder.encode(pw))
                 .role(Role.CLIENT)
                 .isEnable(false)
                 .isConfirmed(false)
@@ -175,9 +176,7 @@ public class AuthenticationService {
                 .build();
         clientRepository.save(user);
         String jwtToken = GenerateTokenAndSendEmailRegisterClient(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+        return pw;
     }
 
     private String GenerateTokenAndSendEmailRegisterClient(ClientModel client){
