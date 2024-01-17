@@ -12,6 +12,6 @@ public class PdfRequest {
 
     private String clientCI;
     private int month;
-    private String path;
+    private int year;
 
 }

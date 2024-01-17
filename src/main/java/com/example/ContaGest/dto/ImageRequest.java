@@ -12,4 +12,5 @@ public class ImageRequest {
 
     String clientCI;
     int month;
+    int year;
 }

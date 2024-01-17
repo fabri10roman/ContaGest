@@ -19,18 +19,18 @@ public class ImageService {
         return invoiceRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Image with id %s not found",id)));
     }
 
-    public List<Integer> findIdByClientCI (String clientCI){
+    public List<Integer> findIdByClientCI (String clientCI, int year){
 
-        List<Integer> imgID = invoiceRepository.findIdByClientCI(clientCI);
+        List<Integer> imgID = invoiceRepository.findIdByClientCI(clientCI,year);
 
         if (imgID.isEmpty()) throw new ResourceNotFoundException(String.format("ID with client CI %s not found",clientCI));
 
         return imgID;
     }
 
-    public List<Integer> findIdByClientCiAndMonth(String clientCI, int month){
+    public List<Integer> findIdByClientCiAndMonth(String clientCI, int month, int year){
 
-        List<Integer> imgID = invoiceRepository.findIdByClientCiAndMonth(clientCI,month);
+        List<Integer> imgID = invoiceRepository.findIdByClientCiAndMonthAndYear(clientCI,month,year);
 
         if (imgID.isEmpty()) throw new ResourceNotFoundException(String.format("ID with client CI %s and month %s not found",clientCI,month));
 

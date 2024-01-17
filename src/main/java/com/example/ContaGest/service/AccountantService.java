@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 
-import java.io.FileNotFoundException;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 @Service
@@ -25,14 +25,17 @@ public class AccountantService {
 
     private final InvoiceRepository invoiceRepository;
 
-    public void getPDF (String clientCI,int month,String path) throws FileNotFoundException {
+    public byte[] getPDF(String clientCI, int month, int year) {
 
-        List<InvoiceModel> invoices = invoiceRepository.findByClientIdAndMonth(clientCI, month);
+        List<InvoiceModel> invoices = invoiceRepository.findByClientIdAndMonthAndYear(clientCI, month, year);
         List<byte[]> imgs = invoices.stream().map(InvoiceModel::getImg).toList();
 
-        if (imgs.isEmpty()) throw new ResourceNotFoundException(String.format("Invoices with client CI %s and month %s not found",clientCI,month));
+        if (imgs.isEmpty()) {
+            throw new ResourceNotFoundException(String.format("Invoices of the client with CI %s in month %s and year %s not found", clientCI, month, year));
+        }
 
-        PdfWriter pdfWriter = new PdfWriter(path);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        PdfWriter pdfWriter = new PdfWriter(byteArrayOutputStream);
 
         PdfDocument pdfDocument = new PdfDocument(pdfWriter);
         pdfDocument.addNewPage();
@@ -52,10 +55,10 @@ public class AccountantService {
             div.setMarginTop(20);
             document.add(div);
         }
-
         document.close();
-
+        return byteArrayOutputStream.toByteArray();
     }
+
 
 
 

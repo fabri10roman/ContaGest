@@ -24,16 +24,8 @@ public class ImageController {
                 .body(imageService.getBinaryImage(id).getImg());
     }
 
-    @GetMapping("/all")
-    public List<Integer> getAllIdImage(@RequestBody String clientCI){
-
-        return imageService.findIdByClientCI(clientCI);
-
-    }
-
     @GetMapping("/month")
     public List<Integer> getAllIdImagePerMonth(@RequestBody ImageRequest imageRequest){
-
-        return imageService.findIdByClientCiAndMonth(imageRequest.getClientCI(),imageRequest.getMonth());
+        return imageService.findIdByClientCiAndMonth(imageRequest.getClientCI(),imageRequest.getMonth(),imageRequest.getYear());
     }
 }

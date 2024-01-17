@@ -15,6 +15,7 @@ public class InvoiceModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private int month;
+    private int year;
     private byte[] img;
 
     @ManyToOne

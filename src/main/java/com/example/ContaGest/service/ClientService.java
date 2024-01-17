@@ -19,11 +19,12 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final InvoiceRepository invoiceRepository;
 
-    public void saveImage (String clientCI,int month, byte[] bytes) {
+    public void saveImage (String clientCI,int month, byte[] bytes, int year) {
 
         InvoiceModel invoiceModel = new InvoiceModel();
         invoiceModel.setMonth(month);
         invoiceModel.setImg(bytes);
+        invoiceModel.setYear(year);
         Optional<ClientModel> clientModel = clientRepository.findByUsername(clientCI);
 
         if (clientModel.isPresent()){
