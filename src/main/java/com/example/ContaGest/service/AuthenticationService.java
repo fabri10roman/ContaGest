@@ -35,9 +35,10 @@ public class AuthenticationService {
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
     public AuthenticationResponse registerAccountant(RegisterRequestAccountant request) throws BadRequestException {
-
         Optional<AccountantModel> accountantModel = accountantRepository.findByUsername(request.getUserCI());
-
+        if(validateEmail(request.getEmail())){
+            throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
+        }
         if(accountantModel.isPresent()){
             AccountantModel accountant = accountantModel.get();
             if (!accountant.isConfirmed()){
@@ -74,6 +75,10 @@ public class AuthenticationService {
                 .build();
     }
 
+    private boolean validateEmail(String email) {
+        return true;
+    }
+
     private String GenerateTokenAndSendEmailRegisterAccountant(AccountantModel accountant){
         var jwtToken = jwtService.generateTokenRegistrationAccountant(accountant);
         var token = TokenModel.builder()
@@ -93,8 +98,9 @@ public class AuthenticationService {
     @Transactional
     public ResponseEntity<?> confirmTokenAccountant (String token) {
         TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
+        String username;
         try{
-            jwtService.isTokenExpired(token);
+            username = jwtService.getUsername(token);
         }catch (JwtException e){
             tokenModel.setRevoke(true);
             tokenModel.setExpired(true);
@@ -107,7 +113,6 @@ public class AuthenticationService {
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
             throw new TokenExpiredException();
         }
-        String username = jwtService.getUsername(token);
         AccountantModel accountantModel = accountantRepository.findByUsername(username).
                 orElseThrow(() -> new UsernameNotFoundException(String.format("Accountant with CI %s not found",username)));
         accountantModel.setEnable(true);
@@ -153,6 +158,9 @@ public class AuthenticationService {
     }
 
     public String registerClient(RegisterRequestClient request) throws BadRequestException {
+        if (validateEmail(request.getEmail())){
+            throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
+        }
         String accountantUsername;
         String token = request.getToken();
         TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
@@ -175,8 +183,11 @@ public class AuthenticationService {
                         && client.getPhoneNumber().equals(request.getNumber())
                 ){
                     revokeAllClientToken(client);
+                    String pw = request.getUserCI() + "_" + generateRandomPassword();
+                    client.setPassword(passwordEncoder.encode(pw));
+                    clientRepository.save(client);
                     String jwtToken = GenerateTokenAndSendEmailRegisterClient(client);
-                    return "Check your email";
+                    return pw;
                 }
                 throw new BadRequestException("All fields must be the same as the first time you registered this user");
             }
@@ -221,8 +232,9 @@ public class AuthenticationService {
     @Transactional
     public ResponseEntity<?> confirmTokenClient (String token) {
         TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
+        String username;
         try{
-            jwtService.isTokenExpired(token);
+            username = jwtService.getUsername(token);
         }catch (JwtException e){
             tokenModel.setRevoke(true);
             tokenModel.setExpired(true);
@@ -235,7 +247,6 @@ public class AuthenticationService {
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
             throw new TokenExpiredException();
         }
-        String username = jwtService.getUsername(token);
         ClientModel clientModel = clientRepository.findByUsername(username).
                 orElseThrow(() -> new UsernameNotFoundException(String.format("Client with CI %s not found",username)));
         clientModel.setEnable(true);

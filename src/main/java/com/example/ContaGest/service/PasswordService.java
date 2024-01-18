@@ -3,9 +3,9 @@ package com.example.ContaGest.service;
 import com.example.ContaGest.dto.ChangePasswordRequest;
 import com.example.ContaGest.dto.ForgotPasswordConfirmRequest;
 import com.example.ContaGest.dto.ForgotPasswordRequest;
-import com.example.ContaGest.exception.AlreadySendEmailException;
+import com.example.ContaGest.exception.ConflictExcepcion;
 import com.example.ContaGest.exception.ResourceNotFoundException;
-import com.example.ContaGest.exception.UserNotFoundException;
+import com.example.ContaGest.exception.TokenExpiredException;
 import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;
 import com.example.ContaGest.repository.ClientRepository;
@@ -15,13 +15,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.security.SecureRandom;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,10 +40,21 @@ public class PasswordService {
     private static final String ALLOWED_CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÑabcdefghijklmnopqrstuvwxyzñ";
 
     public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
-
         String jwt = request.getToken();
-        String role = jwtService.getRole(jwt);
-
+        TokenModel tokenModel = tokenRepository.findByToken(jwt).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
+        String role;
+        try{
+            jwtService.isTokenExpired(jwt);
+            role = jwtService.getRole(jwt);
+        }catch (JwtException e){
+            tokenModel.setRevoke(true);
+            tokenModel.setExpired(true);
+            tokenRepository.save(tokenModel);
+            throw new TokenExpiredException();
+        }
+        if (tokenModel.isExpired() && tokenModel.isRevoke()) {
+            throw new TokenExpiredException();
+        }
         if (role.equals(Role.ACCOUNTANT.name())){
             changePasswordAccount(request,connectedUser);
         }else if (role.equals(Role.CLIENT.name())){
@@ -51,50 +63,41 @@ public class PasswordService {
     }
 
     public void changePasswordAccount(ChangePasswordRequest request, Principal connectedUser) {
-
         AccountantModel user = (AccountantModel) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BadCredentialsException("The current password does not match");
         }
         if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
             throw new BadCredentialsException("Password are not the same");
         }
-
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         accountantRepository.save(user);
-
     }
 
     public void changePasswordClient(ChangePasswordRequest request, Principal connectedUser) {
-
         ClientModel user = (ClientModel) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BadCredentialsException("The current password does not match");
         }
         if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
             throw new BadCredentialsException("Password are not the same");
         }
-
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         clientRepository.save(user);
-
     }
 
     public String forgotPassword(ForgotPasswordRequest request) {
         String email = request.getEmail();
         String role = request.getRole();
-
         if (role.equals(Role.CLIENT.name())){
             ClientModel client = clientRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException(String.format("Client with %s email not found",email)));
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Client with email %s not found",email)));
             List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordClientByClientID(client.getId());
             CheckForgotToken(tokenModel);
             return GenerateTokenAndSendEmailForgotPasswordClient(client);
         }
         AccountantModel accountant = accountantRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(String.format("Accountant with %s email not found",email)));
+                .orElseThrow(() -> new UsernameNotFoundException(String.format("Accountant with %s email not found",email)));
         List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordAccountantByAccountantID(accountant.getId());
         CheckForgotToken(tokenModel);
         return GenerateTokenAndSendEmailForgotPasswordAccountant(accountant);
@@ -105,8 +108,8 @@ public class PasswordService {
             for (TokenModel token : tokenModel){
                 try {
                     String jwtToken = token.getToken();
-                    String username = jwtService.getUsername(jwtToken);
-                    throw new AlreadySendEmailException("Email already send before, please check your email");
+                    jwtService.isTokenExpired(jwtToken);
+                    throw new ConflictExcepcion("Email already send before, please check your email");
                 }catch (JwtException e){
                     token.setRevoke(true);
                     token.setExpired(true);
@@ -152,20 +155,24 @@ public class PasswordService {
 
     public ResponseEntity<?> confirmForgotPassword(String token, ForgotPasswordConfirmRequest request) {
         TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
+        String username;
+        String role;
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
-            throw new IllegalStateException("Token expired");
+            throw new TokenExpiredException();
         }
-        if (jwtService.isTokenExpired(token)){
+        try{
+            jwtService.isTokenExpired(token);
+            username = jwtService.getUsername(token);
+            role = jwtService.getRole(token);
+        }catch (JwtException e){
             tokenModel.setRevoke(true);
             tokenModel.setExpired(true);
             tokenRepository.save(tokenModel);
-            throw new IllegalStateException("Token expired");
+            throw new TokenExpiredException();
         }
-        String username = jwtService.getUsername(token);
-        String role = jwtService.getRole(token);
         if (role.equals(Role.CLIENT.name())){
             ClientModel client = clientRepository.findByUsername(username)
-                    .orElseThrow(() -> new UserNotFoundException(String.format("Client with %s username not found",username)));
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Client with CI %s not found",username)));
             if (!request.getNewPassword().equals(request.getConfirmPassword())){
                 throw new BadCredentialsException("Password are not the same");
             }
@@ -175,7 +182,7 @@ public class PasswordService {
         }
         else {
             AccountantModel accountant = accountantRepository.findByUsername(username)
-                    .orElseThrow(() -> new UserNotFoundException(String.format("Accountant with %s username not found",username)));
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Accountant with CI %s not found",username)));
             if (!request.getNewPassword().equals(request.getConfirmPassword())){
                 throw new BadCredentialsException("Password are not the same");
             }
