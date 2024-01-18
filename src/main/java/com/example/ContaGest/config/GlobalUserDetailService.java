@@ -1,7 +1,6 @@
 package com.example.ContaGest.config;
 
-import com.example.ContaGest.exception.ResourceNotFoundException;
-import com.example.ContaGest.exception.UserNotFoundException;
+
 import com.example.ContaGest.model.AccountantModel;
 import com.example.ContaGest.model.ClientModel;
 import com.example.ContaGest.repository.AccountantRepository;
@@ -28,6 +27,6 @@ public class GlobalUserDetailService implements UserDetailsService {
             return accountantModel.get();
         }
         Optional<ClientModel> clientModel = clientRepository.findByUsername(username);
-        return clientModel.orElseThrow(()-> new UserNotFoundException("User not found with username: " + username));
+        return clientModel.orElseThrow(()-> new UsernameNotFoundException("User with CI %s not found: " + username));
     }
 }
