@@ -5,6 +5,7 @@ import com.example.ContaGest.dto.RegisterRequestAccountant;
 import com.example.ContaGest.dto.RegisterRequestClient;
 import com.example.ContaGest.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.ContaGest.dto.LoginRequest;
@@ -22,7 +23,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register-accountant")
-    public ResponseEntity<AuthenticationResponse> registerAccountant(@RequestBody RegisterRequestAccountant request) {
+    public ResponseEntity<AuthenticationResponse> registerAccountant(@RequestBody RegisterRequestAccountant request) throws BadRequestException {
         return ResponseEntity.ok(authenticationService.registerAccountant(request));
     }
 
@@ -37,7 +38,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register-client")
-    public ResponseEntity<String> registerClient(@RequestBody RegisterRequestClient request) {
+    public ResponseEntity<String> registerClient(@RequestBody RegisterRequestClient request) throws BadRequestException {
         return ResponseEntity.ok(authenticationService.registerClient(request));
     }
 
