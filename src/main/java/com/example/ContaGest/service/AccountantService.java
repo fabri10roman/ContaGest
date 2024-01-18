@@ -34,29 +34,33 @@ public class AccountantService {
             throw new ResourceNotFoundException(String.format("Invoices of the client with CI %s in month %s and year %s not found", clientCI, month, year));
         }
 
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        PdfWriter pdfWriter = new PdfWriter(byteArrayOutputStream);
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            PdfWriter pdfWriter = new PdfWriter(byteArrayOutputStream);
 
-        PdfDocument pdfDocument = new PdfDocument(pdfWriter);
-        pdfDocument.addNewPage();
+            PdfDocument pdfDocument = new PdfDocument(pdfWriter);
+            pdfDocument.addNewPage();
 
-        Document document = new Document(pdfDocument);
+            Document document = new Document(pdfDocument);
 
-        for (byte[] img : imgs) {
-            ImageData imageData = ImageDataFactory.create(img);
-            Image image = new Image(imageData);
-            float width = pdfDocument.getDefaultPageSize().getWidth() - document.getLeftMargin() - document.getRightMargin();
-            float height = pdfDocument.getDefaultPageSize().getHeight() - document.getTopMargin() - document.getBottomMargin();
-            image.scaleToFit(width, height);
-            Div div = new Div();
-            div.setVerticalAlignment(VerticalAlignment.MIDDLE);
-            div.setHorizontalAlignment(HorizontalAlignment.CENTER);
-            div.add(image);
-            div.setMarginTop(20);
-            document.add(div);
+            for (byte[] img : imgs) {
+                ImageData imageData = ImageDataFactory.create(img);
+                Image image = new Image(imageData);
+                float width = pdfDocument.getDefaultPageSize().getWidth() - document.getLeftMargin() - document.getRightMargin();
+                float height = pdfDocument.getDefaultPageSize().getHeight() - document.getTopMargin() - document.getBottomMargin();
+                image.scaleToFit(width, height);
+                Div div = new Div();
+                div.setVerticalAlignment(VerticalAlignment.MIDDLE);
+                div.setHorizontalAlignment(HorizontalAlignment.CENTER);
+                div.add(image);
+                div.setMarginTop(20);
+                document.add(div);
+            }
+            document.close();
+            return byteArrayOutputStream.toByteArray();
+        }catch (Exception e){
+            throw new IllegalStateException("Error to generate PDF");
         }
-        document.close();
-        return byteArrayOutputStream.toByteArray();
     }
 
 
