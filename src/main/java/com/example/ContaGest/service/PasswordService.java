@@ -71,6 +71,7 @@ public class PasswordService {
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         accountantRepository.save(user);
+        authenticationService.revokeAllAccountantTokenButThis(user,request.getToken());
     }
 
     public void changePasswordClient(ChangePasswordRequest request, Principal connectedUser) {
@@ -83,6 +84,7 @@ public class PasswordService {
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         clientRepository.save(user);
+        authenticationService.revokeAllClientTokenButThis(user,request.getToken());
     }
 
     public String forgotPassword(ForgotPasswordRequest request) {

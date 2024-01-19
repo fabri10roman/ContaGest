@@ -277,7 +277,7 @@ public class AuthenticationService {
     }
 
     public void revokeAllClientToken (ClientModel clientModel){
-        var validClientToken = tokenRepository.findAllValidTokensByUser(clientModel.getId());
+        var validClientToken = tokenRepository.findAllValidTokenByClientId(clientModel.getId());
         if (validClientToken.isEmpty()){
             return;
         }
@@ -289,7 +289,7 @@ public class AuthenticationService {
     }
 
     public void revokeAllAccountantToken (AccountantModel accountantModel){
-        var validAccountantToken = tokenRepository.findAllValidTokensByUser(accountantModel.getId());
+        var validAccountantToken = tokenRepository.findAllValidTokenByAccountantId(accountantModel.getId());
         if (validAccountantToken.isEmpty()){
             return;
         }
@@ -316,5 +316,34 @@ public class AuthenticationService {
             return authenticateClient(authenticationRequest);
         }
         throw new IllegalStateException("Something went wrong with the authentication");
+    }
+
+    public void revokeAllAccountantTokenButThis(AccountantModel user, String token) {
+        var validAccountantToken = tokenRepository.findAllValidTokenByAccountantId(user.getId());
+        if (validAccountantToken.isEmpty()){
+            return;
+        }
+        validAccountantToken.forEach(f -> {
+            if (!f.getToken().equals(token)){
+                f.setRevoke(true);
+                f.setExpired(true);
+            }
+        });
+        tokenRepository.saveAll(validAccountantToken);
+
+    }
+
+    public void revokeAllClientTokenButThis(ClientModel user, String token) {
+        var validClientToken = tokenRepository.findAllValidTokenByClientId(user.getId());
+        if (validClientToken.isEmpty()){
+            return;
+        }
+        validClientToken.forEach(f -> {
+            if (!f.getToken().equals(token)){
+                f.setRevoke(true);
+                f.setExpired(true);
+            }
+        });
+        tokenRepository.saveAll(validClientToken);
     }
 }
