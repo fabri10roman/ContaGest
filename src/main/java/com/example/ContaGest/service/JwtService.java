@@ -1,6 +1,9 @@
 package com.example.ContaGest.service;
 
+import com.example.ContaGest.model.AccountantModel;
+import com.example.ContaGest.model.ClientModel;
 import com.example.ContaGest.model.Role;
+import com.example.ContaGest.model.Token;
 import com.example.ContaGest.repository.TokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -47,68 +50,71 @@ public class JwtService {
                 .getPayload();
     }
 
-    public String generateTokenRegistrationAccountant(UserDetails userDetails){
+    private String generateTokenRegistration(UserDetails userDetails, Map<String, Object> claims){
+        int timeMillis = 0;
+        AccountantModel accountantModel;
+        ClientModel clientModel;
+        Integer id = null;
+        if (userDetails instanceof AccountantModel) {
+            accountantModel = (AccountantModel) userDetails;
+            timeMillis = 900000; //15min
+            id = accountantModel.getId();
+        } else if (userDetails instanceof ClientModel) {
+            clientModel = (ClientModel) userDetails;
+            timeMillis = 900000 * 4; //1hour
+            id = clientModel.getId();
+        }
+        claims.put("ID", id);
+        return Jwts
+                .builder()
+                .claims().empty().add(claims).and()
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + timeMillis))
+                .signWith(getSiginKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
+    private String generateTokenForgotPassword(UserDetails userDetails, Map<String, Object> claims) {
         int timeMillis = 900000; //15min
-        Map<String, Object> claims = new HashMap<>();
-        String role = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse(null);
-        claims.put("Role", role);
+        AccountantModel accountantModel = null;
+        ClientModel clientModel = null;
+        Integer id = null;
+        String role = claims.get("Role").toString();
+        if (userDetails instanceof AccountantModel) {
+            accountantModel = (AccountantModel) userDetails;
+            id = accountantModel.getId();
+        } else if (userDetails instanceof ClientModel) {
+            clientModel = (ClientModel) userDetails;
+            id = clientModel.getId();
+        }
+        if ((role.equals(Role.ACCOUNTANT.name()) && accountantModel == null) || (role.equals(Role.CLIENT.name()) && clientModel == null)) {
+            throw new IllegalArgumentException("Error generating token");
+        }
+        claims.put("ID", id);
         return Jwts
                 .builder()
                 .claims().empty().add(claims).and()
-                .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + timeMillis))
                 .signWith(getSiginKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
-    public String generateTokenForgotPassword(UserDetails userDetails){
-        int timeMillis = 900000; //15min
+    public String generateToken(UserDetails userDetails, Token tokenFormat){
         Map<String, Object> claims = new HashMap<>();
         String role = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
                 .orElse(null);
         claims.put("Role", role);
-        return Jwts
-                .builder()
-                .claims().empty().add(claims).and()
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + timeMillis))
-                .signWith(getSiginKey(), Jwts.SIG.HS256)
-                .compact();
-    }
-
-    public String generateTokenRegistrationClient(UserDetails userDetails){
-        int timeMillis = 900000*8; //2 hours
-        Map<String, Object> claims = new HashMap<>();
-        String role = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse(null);
-        claims.put("Role", role);
-        return Jwts
-                .builder()
-                .claims().empty().add(claims).and()
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + timeMillis))
-                .signWith(getSiginKey(), Jwts.SIG.HS256)
-                .compact();
-    }
-
-    public String generateToken(UserDetails userDetails){
-        Map<String, Object> claims = new HashMap<>();
-        String role = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse(null);
-        claims.put("Role", role);
-        return generateToken(claims, userDetails);
+        if (tokenFormat.equals(Token.REGISTRATION)) {
+            return generateTokenRegistration(userDetails, claims);
+        } else if (tokenFormat.equals(Token.FORGOT_PASSWORD)) {
+            return generateTokenForgotPassword(userDetails, claims);
+        } else if (tokenFormat.equals(Token.LOGIN)) {
+            return generateToken(claims, userDetails);
+        }
+        throw new IllegalArgumentException("Error generating token");
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails){
@@ -158,4 +164,7 @@ public class JwtService {
         return getClaim(token,Claims::getExpiration);
     }
 
+    public Integer getId(String token){
+        return getClaim(token, claims -> (Integer) claims.get("ID"));
+    }
 }

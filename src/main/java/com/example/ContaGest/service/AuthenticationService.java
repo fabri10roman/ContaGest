@@ -80,7 +80,7 @@ public class AuthenticationService {
     }
 
     private String GenerateTokenAndSendEmailRegisterAccountant(AccountantModel accountant){
-        var jwtToken = jwtService.generateTokenRegistrationAccountant(accountant);
+        var jwtToken = jwtService.generateToken(accountant,Token.REGISTRATION);
         var token = TokenModel.builder()
                 .accountant_id(accountant.getId())
                 .token(jwtToken)
@@ -96,11 +96,13 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public ResponseEntity<?> confirmTokenAccountant (String token) {
+    public ResponseEntity<?> confirmTokenRegistration (String token) {
         TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
-        String username;
+        Integer id;
+        String role;
         try{
-            username = jwtService.getUsername(token);
+            id = jwtService.getId(token);
+            role = jwtService.getRole(token);
         }catch (JwtException e){
             tokenModel.setRevoke(true);
             tokenModel.setExpired(true);
@@ -113,15 +115,28 @@ public class AuthenticationService {
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
             throw new TokenExpiredException();
         }
-        AccountantModel accountantModel = accountantRepository.findByUsername(username).
-                orElseThrow(() -> new UsernameNotFoundException(String.format("Accountant with CI %s not found",username)));
-        accountantModel.setEnable(true);
-        accountantModel.setConfirmed(true);
-        tokenModel.setRevoke(true);
-        tokenModel.setExpired(true);
-        tokenRepository.save(tokenModel);
-        accountantRepository.save(accountantModel);
-        return ResponseEntity.ok("Confirmed");
+        if(role.equals(Role.ACCOUNTANT.name())){
+            AccountantModel accountantModel = accountantRepository.findById(id)
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Accountant with ID %s not found",id)));
+            accountantModel.setEnable(true);
+            accountantModel.setConfirmed(true);
+            tokenModel.setRevoke(true);
+            tokenModel.setExpired(true);
+            tokenRepository.save(tokenModel);
+            accountantRepository.save(accountantModel);
+            return ResponseEntity.ok("Confirmed");
+        }else if (role.equals(Role.CLIENT.name())){
+            ClientModel clientModel = clientRepository.findById(id)
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Client with ID %s not found",id)));
+            clientModel.setEnable(true);
+            clientModel.setConfirmed(true);
+            tokenModel.setRevoke(true);
+            tokenModel.setExpired(true);
+            tokenRepository.save(tokenModel);
+            clientRepository.save(clientModel);
+            return ResponseEntity.ok("Confirmed");
+        }
+        throw new IllegalStateException("Something went wrong with the confirmation of the token");
     }
 
     private AuthenticationResponse authenticateAccountant(AuthenticationRequest request) {
@@ -142,7 +157,7 @@ public class AuthenticationService {
             throw new UserNotEnableExcepcion(String.format("The email %s is not confirmed",user.getEmail()));
         }
         revokeAllAccountantToken(user);
-        var jwtToken = jwtService.generateToken(user);
+        var jwtToken = jwtService.generateToken(user,Token.LOGIN);
         var token = TokenModel.builder()
                 .accountant_id(user.getId())
                 .token(jwtToken)
@@ -214,7 +229,7 @@ public class AuthenticationService {
     }
 
     private String GenerateTokenAndSendEmailRegisterClient(ClientModel client){
-        var jwtToken = jwtService.generateTokenRegistrationClient(client);
+        var jwtToken = jwtService.generateToken(client,Token.REGISTRATION);
         var token = TokenModel.builder()
                 .client_id(client.getId())
                 .token(jwtToken)
@@ -228,36 +243,6 @@ public class AuthenticationService {
         emailService.send(client.getEmail(),emailService.buildEmail(client.getName(),link));
         return jwtToken;
     }
-
-    @Transactional
-    public ResponseEntity<?> confirmTokenClient (String token) {
-        TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
-        String username;
-        try{
-            username = jwtService.getUsername(token);
-        }catch (JwtException e){
-            tokenModel.setRevoke(true);
-            tokenModel.setExpired(true);
-            tokenRepository.save(tokenModel);
-            throw new TokenExpiredException();
-        }
-        if (!tokenModel.getTokenFormat().name().equals(Token.REGISTRATION.name())) {
-            throw new IllegalStateException("The token is not for registration");
-        }
-        if (tokenModel.isExpired() && tokenModel.isRevoke()) {
-            throw new TokenExpiredException();
-        }
-        ClientModel clientModel = clientRepository.findByUsername(username).
-                orElseThrow(() -> new UsernameNotFoundException(String.format("Client with CI %s not found",username)));
-        clientModel.setEnable(true);
-        clientModel.setConfirmed(true);
-        tokenModel.setRevoke(true);
-        tokenModel.setExpired(true);
-        tokenRepository.save(tokenModel);
-        clientRepository.save(clientModel);
-        return ResponseEntity.ok("Confirmed");
-    }
-
     private AuthenticationResponse authenticateClient(AuthenticationRequest request) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
@@ -276,7 +261,7 @@ public class AuthenticationService {
             throw new ConflictExcepcion(String.format("The email %s is not confirmed",user.getEmail()));
         }
         revokeAllClientToken(user);
-        var jwtToken = jwtService.generateToken(user);
+        var jwtToken = jwtService.generateToken(user,Token.LOGIN);
         var token = TokenModel.builder()
                 .client_id(user.getId())
                 .token(jwtToken)

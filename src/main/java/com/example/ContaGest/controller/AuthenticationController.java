@@ -29,12 +29,12 @@ public class AuthenticationController {
 
     @GetMapping("/confirm-accountant")
     public ResponseEntity<?> confirmAccountant(@RequestParam("token") String token){
-        return authenticationService.confirmTokenAccountant(token);
+        return authenticationService.confirmTokenRegistration(token);
     }
 
     @GetMapping("/confirm-client")
     public ResponseEntity<?> confirmClient(@RequestParam("token") String token){
-        return authenticationService.confirmTokenClient(token);
+        return authenticationService.confirmTokenRegistration(token);
     }
 
     @PostMapping("/register-client")

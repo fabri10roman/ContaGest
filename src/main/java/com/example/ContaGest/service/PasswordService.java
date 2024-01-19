@@ -119,7 +119,7 @@ public class PasswordService {
     }
 
     private String GenerateTokenAndSendEmailForgotPasswordAccountant(AccountantModel accountant){
-        var jwtToken = jwtService.generateTokenForgotPassword(accountant);
+        var jwtToken = jwtService.generateToken(accountant,Token.FORGOT_PASSWORD);
         var token = TokenModel.builder()
                 .accountant_id(accountant.getId())
                 .token(jwtToken)
@@ -135,7 +135,7 @@ public class PasswordService {
     }
 
     private String GenerateTokenAndSendEmailForgotPasswordClient(ClientModel client){
-        var jwtToken = jwtService.generateTokenForgotPassword(client);
+        var jwtToken = jwtService.generateToken(client,Token.FORGOT_PASSWORD);
         var token = TokenModel.builder()
                 .client_id(client.getId())
                 .token(jwtToken)
