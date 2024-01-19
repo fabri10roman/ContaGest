@@ -1,5 +1,6 @@
 package com.example.ContaGest.config;
 
+import com.example.ContaGest.model.Token;
 import com.example.ContaGest.repository.TokenRepository;
 import com.example.ContaGest.service.JwtService;
 import jakarta.servlet.FilterChain;
@@ -46,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     if (username != null && SecurityContextHolder.getContext().getAuthentication() == null){
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
         var isTokenValid = tokenRepository.findByToken(jwt)
-                .map(t -> !t.isExpired() && !t.isRevoke() && !t.isRegistration() && !t.isForgotPassword())
+                .map(t -> !t.isExpired() && !t.isRevoke() && t.getTokenFormat().equals(Token.LOGIN))
                 .orElse(false);
         if (jwtService.isTokenValid(jwt,userDetails) && isTokenValid){
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());

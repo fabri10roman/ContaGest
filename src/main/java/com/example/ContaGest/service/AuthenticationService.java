@@ -36,7 +36,7 @@ public class AuthenticationService {
     private final EmailService emailService;
     public AuthenticationResponse registerAccountant(RegisterRequestAccountant request) throws BadRequestException {
         Optional<AccountantModel> accountantModel = accountantRepository.findByUsername(request.getUserCI());
-        if(validateEmail(request.getEmail())){
+        if(!isEmailValid(request.getEmail())){
             throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
         }
         if(accountantModel.isPresent()){
@@ -75,7 +75,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    private boolean validateEmail(String email) {
+    private boolean isEmailValid(String email) {
         return true;
     }
 
@@ -87,7 +87,7 @@ public class AuthenticationService {
                 .tokenType(TokenType.BEARER)
                 .isExpired(false)
                 .isRevoke(false)
-                .isRegistration(true)
+                .tokenFormat(Token.REGISTRATION)
                 .build();
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/auth/confirm-accountant?token=" + jwtToken;
@@ -107,7 +107,7 @@ public class AuthenticationService {
             tokenRepository.save(tokenModel);
             throw new TokenExpiredException();
         }
-        if (!tokenModel.isRegistration()) {
+        if (!tokenModel.getTokenFormat().name().equals(Token.REGISTRATION.name())) {
             throw new IllegalStateException("The token is not for registration");
         }
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
@@ -149,7 +149,7 @@ public class AuthenticationService {
                 .tokenType(TokenType.BEARER)
                 .isExpired(false)
                 .isRevoke(false)
-                .isRegistration(false)
+                .tokenFormat(Token.LOGIN)
                 .build();
         tokenRepository.save(token);
         return AuthenticationResponse.builder()
@@ -158,7 +158,7 @@ public class AuthenticationService {
     }
 
     public String registerClient(RegisterRequestClient request) throws BadRequestException {
-        if (validateEmail(request.getEmail())){
+        if (!isEmailValid(request.getEmail())){
             throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
         }
         String accountantUsername;
@@ -221,7 +221,7 @@ public class AuthenticationService {
                 .tokenType(TokenType.BEARER)
                 .isExpired(false)
                 .isRevoke(false)
-                .isRegistration(true)
+                .tokenFormat(Token.REGISTRATION)
                 .build();
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/auth/confirm-client?token=" + jwtToken;
@@ -241,7 +241,7 @@ public class AuthenticationService {
             tokenRepository.save(tokenModel);
             throw new TokenExpiredException();
         }
-        if (!tokenModel.isRegistration()) {
+        if (!tokenModel.getTokenFormat().name().equals(Token.REGISTRATION.name())) {
             throw new IllegalStateException("The token is not for registration");
         }
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
@@ -283,7 +283,7 @@ public class AuthenticationService {
                 .tokenType(TokenType.BEARER)
                 .isExpired(false)
                 .isRevoke(false)
-                .isRegistration(false)
+                .tokenFormat(Token.LOGIN)
                 .build();
         tokenRepository.save(token);
         return AuthenticationResponse.builder()

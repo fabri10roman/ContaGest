@@ -23,8 +23,8 @@ public class TokenModel {
     private TokenType tokenType;
     private boolean isExpired;
     private boolean isRevoke;
-    private boolean isRegistration;
-    private boolean isForgotPassword;
+    @Enumerated(EnumType.STRING)
+    private Token tokenFormat;
     private Integer accountant_id;
     private Integer client_id;
 

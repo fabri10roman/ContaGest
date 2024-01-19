@@ -23,16 +23,16 @@ public interface TokenRepository extends JpaRepository<TokenModel,Integer> {
     Optional<TokenModel> findByToken(@Param("token") String token);
 
 
-    @Query("SELECT f.token FROM TokenModel f WHERE f.client_id=:id AND f.isRegistration=true AND f.isRevoke=false AND f.isRevoke=false")
+    @Query("SELECT f.token FROM TokenModel f WHERE f.client_id=:id AND f.tokenFormat='REGISTRATION' AND f.isRevoke=false AND f.isExpired=false")
     List<String> findTokenRegisterClientByClientId(@Param("id") Integer id);
 
-    @Query("SELECT f.token FROM TokenModel f WHERE f.accountant_id=:id AND f.isRegistration=true AND f.isRevoke=false AND f.isRevoke=false")
+    @Query("SELECT f.token FROM TokenModel f WHERE f.accountant_id=:id AND f.tokenFormat='REGISTRATION' AND f.isRevoke=false AND f.isExpired=false")
     List<String> findTokenRegisterAccountantByAccountantId(@Param("id") Integer id);
 
-    @Query("SELECT f FROM TokenModel f WHERE f.isForgotPassword=true AND f.isRevoke=false AND f.isRevoke=false AND f.client_id=:id")
+    @Query("SELECT f FROM TokenModel f WHERE f.tokenFormat='FORGOT_PASSWORD' AND f.isRevoke=false AND f.isRevoke=false AND f.client_id=:id")
     List<TokenModel> findTokenForgotPasswordClientByClientID(@Param("id") Integer id);
 
-    @Query("SELECT f FROM TokenModel f WHERE f.isForgotPassword=true AND f.isRevoke=false AND f.isRevoke=false AND f.accountant_id=:id")
+    @Query("SELECT f FROM TokenModel f WHERE f.tokenFormat='FORGOT_PASSWORD' AND f.isRevoke=false AND f.isRevoke=false AND f.accountant_id=:id")
     List<TokenModel> findTokenForgotPasswordAccountantByAccountantID(@Param("id") Integer id);
 
 }

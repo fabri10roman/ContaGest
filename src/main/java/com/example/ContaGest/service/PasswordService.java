@@ -44,7 +44,6 @@ public class PasswordService {
         TokenModel tokenModel = tokenRepository.findByToken(jwt).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
         String role;
         try{
-            jwtService.isTokenExpired(jwt);
             role = jwtService.getRole(jwt);
         }catch (JwtException e){
             tokenModel.setRevoke(true);
@@ -127,8 +126,7 @@ public class PasswordService {
                 .tokenType(TokenType.BEARER)
                 .isExpired(false)
                 .isRevoke(false)
-                .isRegistration(false)
-                .isForgotPassword(true)
+                .tokenFormat(Token.FORGOT_PASSWORD)
                 .build();
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/password/confirm-forgot-password?token=" + jwtToken;
@@ -144,8 +142,7 @@ public class PasswordService {
                 .tokenType(TokenType.BEARER)
                 .isExpired(false)
                 .isRevoke(false)
-                .isRegistration(false)
-                .isForgotPassword(true)
+                .tokenFormat(Token.FORGOT_PASSWORD)
                 .build();
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/password/confirm-forgot-password?token=" + jwtToken;
@@ -161,7 +158,6 @@ public class PasswordService {
             throw new TokenExpiredException();
         }
         try{
-            jwtService.isTokenExpired(token);
             username = jwtService.getUsername(token);
             role = jwtService.getRole(token);
         }catch (JwtException e){
