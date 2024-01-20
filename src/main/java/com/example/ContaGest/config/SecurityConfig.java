@@ -1,11 +1,10 @@
 package com.example.ContaGest.config;
 
 import com.example.ContaGest.model.Role;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -14,17 +13,28 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final LogoutHandler logoutHandler;
+    private final HandlerExceptionResolver exceptionResolver;
+
+    public SecurityConfig(AuthenticationProvider authenticationProvider,
+                          LogoutHandler logoutHandler,
+                          @Qualifier("handlerExceptionResolver")HandlerExceptionResolver exceptionResolver) {
+        this.authenticationProvider = authenticationProvider;
+        this.logoutHandler = logoutHandler;
+        this.exceptionResolver = exceptionResolver;
+    }
+    @Bean
+    public JwtAuthenticationFilter jwtAuthFilter(){
+        return new JwtAuthenticationFilter(exceptionResolver);
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -61,7 +71,7 @@ public class SecurityConfig {
                         sessionManagement
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .authenticationProvider(authenticationProvider).addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .authenticationProvider(authenticationProvider).addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
                 .logout((logout) ->
                         logout
                                 .logoutUrl("/api/v1/auth/logout")
