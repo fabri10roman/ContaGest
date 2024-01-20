@@ -5,12 +5,13 @@ import com.example.ContaGest.dto.ForgotPasswordConfirmRequest;
 import com.example.ContaGest.dto.ForgotPasswordRequest;
 import com.example.ContaGest.exception.ConflictExcepcion;
 import com.example.ContaGest.exception.ResourceNotFoundException;
-import com.example.ContaGest.exception.TokenExpiredException;
 import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;
 import com.example.ContaGest.repository.ClientRepository;
 import com.example.ContaGest.repository.TokenRepository;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -45,14 +46,16 @@ public class PasswordService {
         String role;
         try{
             role = jwtService.getRole(jwt);
-        }catch (JwtException e){
+        }catch (ExpiredJwtException e){
             tokenModel.setRevoke(true);
             tokenModel.setExpired(true);
             tokenRepository.save(tokenModel);
-            throw new TokenExpiredException();
+            throw new ExpiredJwtException(null,null,null);
+        }catch (SignatureException e) {
+            throw new SignatureException(null);
         }
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
-            throw new TokenExpiredException();
+            throw new ExpiredJwtException(null,null,null);
         }
         if (role.equals(Role.ACCOUNTANT.name())){
             changePasswordAccount(request,connectedUser);
@@ -157,16 +160,18 @@ public class PasswordService {
         String username;
         String role;
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
-            throw new TokenExpiredException();
+            throw new ExpiredJwtException(null,null,null);
         }
         try{
             username = jwtService.getUsername(token);
             role = jwtService.getRole(token);
-        }catch (JwtException e){
+        }catch (ExpiredJwtException e){
             tokenModel.setRevoke(true);
             tokenModel.setExpired(true);
             tokenRepository.save(tokenModel);
-            throw new TokenExpiredException();
+            throw new ExpiredJwtException(null,null,null);
+        }catch (SignatureException e) {
+            throw new SignatureException(null);
         }
         if (role.equals(Role.CLIENT.name())){
             ClientModel client = clientRepository.findByUsername(username)

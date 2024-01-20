@@ -1,6 +1,8 @@
 package com.example.ContaGest.exception;
 
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +24,17 @@ public class GlobalExceptionHandler {
         Payload payload = new Payload(HttpStatus.NOT_FOUND.value(),HttpStatus.NOT_FOUND.getReasonPhrase(),e.getMessage());
         return new ResponseEntity<>(payload, HttpStatus.NOT_FOUND);
     }
-    @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<?> handleTokenExpiredException(TokenExpiredException e){
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<?> handleTokenExpiredException(ExpiredJwtException e){
         Payload payload = new Payload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),"Token Expired");
         return new ResponseEntity<>(payload, HttpStatus.FORBIDDEN);
     }
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<?> handleSignatureException(SignatureException e){
+        Payload payload = new Payload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),"Invalid Token");
+        return new ResponseEntity<>(payload, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(UserNotEnableExcepcion.class)
     public ResponseEntity<?> handleUserNotEnableExcepcion(UserNotEnableExcepcion e){
         Payload payload = new Payload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),e.getMessage());
@@ -43,7 +51,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(payload, HttpStatus.UNAUTHORIZED);
     }
     @ExceptionHandler(ConflictExcepcion.class)
-    public ResponseEntity<?> handleConflictExcepcion(ConflictExcepcion e){
+    public ResponseEntity<?> handleConflictException(ConflictExcepcion e){
         Payload payload = new Payload(HttpStatus.CONFLICT.value(),HttpStatus.CONFLICT.getReasonPhrase(),e.getMessage());
         return new ResponseEntity<>(payload, HttpStatus.CONFLICT);
     }

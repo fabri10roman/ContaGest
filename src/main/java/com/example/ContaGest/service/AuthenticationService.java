@@ -7,7 +7,8 @@ import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;
 import com.example.ContaGest.repository.ClientRepository;
 import com.example.ContaGest.repository.TokenRepository;
-import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
@@ -103,17 +104,19 @@ public class AuthenticationService {
         try{
             id = jwtService.getId(token);
             role = jwtService.getRole(token);
-        }catch (JwtException e){
+        }catch (ExpiredJwtException e){
             tokenModel.setRevoke(true);
             tokenModel.setExpired(true);
             tokenRepository.save(tokenModel);
-            throw new TokenExpiredException();
+            throw new ExpiredJwtException(null,null,null);
+        }catch (SignatureException e){
+            throw new SignatureException(null);
         }
         if (!tokenModel.getTokenFormat().name().equals(Token.REGISTRATION.name())) {
             throw new IllegalStateException("The token is not for registration");
         }
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
-            throw new TokenExpiredException();
+            throw new ExpiredJwtException(null,null,null);
         }
         if(role.equals(Role.ACCOUNTANT.name())){
             AccountantModel accountantModel = accountantRepository.findById(id)
@@ -181,13 +184,15 @@ public class AuthenticationService {
         TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
         try {
             accountantUsername = jwtService.getUsername(token);
-        }catch (JwtException e){
+        }catch (ExpiredJwtException e){
             tokenModel.setRevoke(true);
             tokenModel.setExpired(true);
-            throw new TokenExpiredException();
+            throw new ExpiredJwtException(null,null,null);
+        }catch (SignatureException e){
+            throw new SignatureException(null);
         }
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
-            throw new TokenExpiredException();
+            throw new ExpiredJwtException(null,null,null);
         }
         Optional<ClientModel> clientModel = clientRepository.findByUsername(request.getUserCI());
         if(clientModel.isPresent()){

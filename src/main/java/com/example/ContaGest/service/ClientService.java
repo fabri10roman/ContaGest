@@ -2,14 +2,14 @@ package com.example.ContaGest.service;
 
 
 import com.example.ContaGest.exception.ResourceNotFoundException;
-import com.example.ContaGest.exception.TokenExpiredException;
+import io.jsonwebtoken.ExpiredJwtException;
 import com.example.ContaGest.model.ClientModel;
 import com.example.ContaGest.model.InvoiceModel;
 import com.example.ContaGest.model.TokenModel;
 import com.example.ContaGest.repository.ClientRepository;
 import com.example.ContaGest.repository.InvoiceRepository;
 import com.example.ContaGest.repository.TokenRepository;
-import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,13 +29,15 @@ public class ClientService {
         String username;
         try {
             username = jwtService.getUsername(token);
-        }catch (JwtException e){
+        }catch (ExpiredJwtException e){
             TokenModel tokenModel = tokenRepository.findByToken(token)
-                    .orElseThrow(TokenExpiredException::new);
+                    .orElseThrow(() -> new ResourceNotFoundException(String.format("Token %s not found",token)));
             tokenModel.setExpired(true);
             tokenModel.setRevoke(true);
             tokenRepository.save(tokenModel);
-            throw new TokenExpiredException();
+            throw new ExpiredJwtException(null,null,null);
+        }catch (SignatureException e) {
+            throw new SignatureException(null);
         }
         InvoiceModel invoiceModel = new InvoiceModel();
         invoiceModel.setMonth(month);
