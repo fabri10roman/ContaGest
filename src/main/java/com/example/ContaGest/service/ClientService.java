@@ -1,6 +1,8 @@
 package com.example.ContaGest.service;
 
 
+import com.example.ContaGest.dto.ResponsePayload;
+import com.example.ContaGest.dto.SaveImageResponse;
 import com.example.ContaGest.exception.ResourceNotFoundException;
 import io.jsonwebtoken.ExpiredJwtException;
 import com.example.ContaGest.model.ClientModel;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,7 +28,7 @@ public class ClientService {
     private final JwtService jwtService;
     private final TokenRepository tokenRepository;
 
-    public void saveImage (int month, byte[] bytes, int year, String token) {
+    public ResponsePayload saveImage (int month, byte[] bytes, int year, String token) {
         String username;
         try {
             username = jwtService.getUsername(token);
@@ -50,9 +53,21 @@ public class ClientService {
             throw new ResourceNotFoundException(String.format("Client with CI %s and month %s not found",username,month));
         }
         invoiceRepository.save(invoiceModel);
+        Integer id = invoiceModel.getId();
+        List<Object> data;
+        SaveImageResponse saveImageResponse = SaveImageResponse.builder()
+                .id(id)
+                .month(month)
+                .year(year)
+                .build();
+        data = List.of(saveImageResponse);
+        return ResponsePayload.builder()
+                .message("Image saved successfully")
+                .data(data)
+                .build();
     }
 
-    public void deleteImage (Integer imageID){
+    public ResponsePayload deleteImage (Integer imageID){
 
         Optional<InvoiceModel> invoiceModel = invoiceRepository.findById(imageID);
 
@@ -61,7 +76,9 @@ public class ClientService {
         }else{
             throw new ResourceNotFoundException(String.format("Image with id %s not found",imageID));
         }
-
+        return ResponsePayload.builder()
+                .message("Image deleted successfully")
+                .build();
     }
 
 

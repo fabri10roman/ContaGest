@@ -3,6 +3,7 @@ package com.example.ContaGest.controller;
 import com.example.ContaGest.dto.ChangePasswordRequest;
 import com.example.ContaGest.dto.ForgotPasswordConfirmRequest;
 import com.example.ContaGest.dto.ForgotPasswordRequest;
+import com.example.ContaGest.dto.ResponsePayload;
 import com.example.ContaGest.service.PasswordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +19,20 @@ public class PasswordController {
     private final PasswordService passwordService;
 
     @PatchMapping("/change")
-    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Principal connectedUser){
-        passwordService.changePassword(request,connectedUser);
-        return ResponseEntity.ok().build();
+    @ResponseBody
+    public ResponsePayload changePassword(@RequestBody ChangePasswordRequest request, Principal connectedUser){
+        return passwordService.changePassword(request,connectedUser);
+
     }
     @PostMapping("/password-forgot")
-    public String forgotPassword(@RequestBody ForgotPasswordRequest request){
+    @ResponseBody
+    public ResponsePayload forgotPassword(@RequestBody ForgotPasswordRequest request){
         return passwordService.forgotPassword(request);
     }
 
     @PostMapping("/confirm-forgot-password")
-    public ResponseEntity<?> confirmForgotPassword(@RequestParam("token")String token,@RequestBody ForgotPasswordConfirmRequest request){
-        return ResponseEntity.ok(passwordService.confirmForgotPassword(token,request));
+    @ResponseBody
+    public ResponsePayload confirmForgotPassword(@RequestParam("token")String token,@RequestBody ForgotPasswordConfirmRequest request){
+        return passwordService.confirmForgotPassword(token,request);
     }
 }

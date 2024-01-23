@@ -3,6 +3,7 @@ package com.example.ContaGest.service;
 import com.example.ContaGest.dto.ChangePasswordRequest;
 import com.example.ContaGest.dto.ForgotPasswordConfirmRequest;
 import com.example.ContaGest.dto.ForgotPasswordRequest;
+import com.example.ContaGest.dto.ResponsePayload;
 import com.example.ContaGest.exception.ConflictExcepcion;
 import com.example.ContaGest.exception.ResourceNotFoundException;
 import com.example.ContaGest.model.*;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -40,7 +42,7 @@ public class PasswordService {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String ALLOWED_CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÑabcdefghijklmnopqrstuvwxyzñ";
 
-    public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
+    public ResponsePayload changePassword(ChangePasswordRequest request, Principal connectedUser) {
         String jwt = request.getToken();
         TokenModel tokenModel = tokenRepository.findByToken(jwt).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
         String role;
@@ -62,9 +64,12 @@ public class PasswordService {
         }else if (role.equals(Role.CLIENT.name())){
             changePasswordClient(request,connectedUser);
         }
+        return ResponsePayload.builder()
+                .message("Password changed successfully")
+                .build();
     }
 
-    public void changePasswordAccount(ChangePasswordRequest request, Principal connectedUser) {
+    private void changePasswordAccount(ChangePasswordRequest request, Principal connectedUser) {
         AccountantModel user = (AccountantModel) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BadCredentialsException("The current password does not match");
@@ -77,7 +82,7 @@ public class PasswordService {
         authenticationService.revokeAllAccountantTokenButThis(user,request.getToken());
     }
 
-    public void changePasswordClient(ChangePasswordRequest request, Principal connectedUser) {
+    private void changePasswordClient(ChangePasswordRequest request, Principal connectedUser) {
         ClientModel user = (ClientModel) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BadCredentialsException("The current password does not match");
@@ -90,7 +95,7 @@ public class PasswordService {
         authenticationService.revokeAllClientTokenButThis(user,request.getToken());
     }
 
-    public String forgotPassword(ForgotPasswordRequest request) {
+    public ResponsePayload forgotPassword(ForgotPasswordRequest request) {
         String email = request.getEmail();
         String role = request.getRole();
         if (role.equals(Role.CLIENT.name())){
@@ -98,13 +103,19 @@ public class PasswordService {
                     .orElseThrow(() -> new UsernameNotFoundException(String.format("Client with email %s not found",email)));
             List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordClientByClientID(client.getId());
             CheckForgotToken(tokenModel);
-            return GenerateTokenAndSendEmailForgotPasswordClient(client);
+            GenerateTokenAndSendEmailForgotPasswordClient(client);
+            return ResponsePayload.builder()
+                    .message("Please check your email")
+                    .build();
         }
         AccountantModel accountant = accountantRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(String.format("Accountant with %s email not found",email)));
         List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordAccountantByAccountantID(accountant.getId());
         CheckForgotToken(tokenModel);
-        return GenerateTokenAndSendEmailForgotPasswordAccountant(accountant);
+        GenerateTokenAndSendEmailForgotPasswordAccountant(accountant);
+        return ResponsePayload.builder()
+                .message("Please check your email")
+                .build();
     }
 
     private void CheckForgotToken(List<TokenModel> tokenModel) {
@@ -123,7 +134,7 @@ public class PasswordService {
         }
     }
 
-    private String GenerateTokenAndSendEmailForgotPasswordAccountant(AccountantModel accountant){
+    private void GenerateTokenAndSendEmailForgotPasswordAccountant(AccountantModel accountant){
         var jwtToken = jwtService.generateToken(accountant,Token.FORGOT_PASSWORD);
         var token = TokenModel.builder()
                 .accountant_id(accountant.getId())
@@ -136,10 +147,9 @@ public class PasswordService {
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/password/confirm-forgot-password?token=" + jwtToken;
         emailService.send(accountant.getEmail(),emailService.buildEmail(accountant.getName(),link));
-        return link;
     }
 
-    private String GenerateTokenAndSendEmailForgotPasswordClient(ClientModel client){
+    private void GenerateTokenAndSendEmailForgotPasswordClient(ClientModel client){
         var jwtToken = jwtService.generateToken(client,Token.FORGOT_PASSWORD);
         var token = TokenModel.builder()
                 .client_id(client.getId())
@@ -152,10 +162,9 @@ public class PasswordService {
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/password/confirm-forgot-password?token=" + jwtToken;
         emailService.send(client.getEmail(),emailService.buildEmail(client.getName(),link));
-        return link;
     }
 
-    public ResponseEntity<?> confirmForgotPassword(String token, ForgotPasswordConfirmRequest request) {
+    public ResponsePayload confirmForgotPassword(String token, ForgotPasswordConfirmRequest request) {
         TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
         String username;
         String role;
@@ -193,7 +202,9 @@ public class PasswordService {
             accountantRepository.save(accountant);
             authenticationService.revokeAllAccountantToken(accountant);
         }
-        return ResponseEntity.ok("Confirmed");
+        return ResponsePayload.builder()
+                .message("Password changed successfully")
+                .build();
     }
 
     public static String generateRandomPassword() {

@@ -1,7 +1,9 @@
 package com.example.ContaGest.service;
 
 
+import com.example.ContaGest.dto.ResponsePayload;
 import com.example.ContaGest.dto.*;
+import com.example.ContaGest.dto.AuthenticationResponse;
 import com.example.ContaGest.exception.*;
 import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;
@@ -11,7 +13,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static com.example.ContaGest.service.PasswordService.generateRandomPassword;
@@ -35,7 +38,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
-    public AuthenticationResponse registerAccountant(RegisterRequestAccountant request) throws BadRequestException {
+    public ResponsePayload registerAccountant(RegisterRequestAccountant request) throws BadRequestException {
         Optional<AccountantModel> accountantModel = accountantRepository.findByUsername(request.getUserCI());
         if(!isEmailValid(request.getEmail())){
             throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
@@ -49,9 +52,9 @@ public class AuthenticationService {
                         && passwordEncoder.matches(request.getPassword(),accountant.getPassword())
                 ){
                     revokeAllAccountantToken(accountant);
-                    String jwtToken = GenerateTokenAndSendEmailRegisterAccountant(accountant);
-                    return AuthenticationResponse.builder()
-                            .token(jwtToken)
+                    GenerateTokenAndSendEmailRegisterAccountant(accountant);
+                    return ResponsePayload.builder()
+                            .message("Registration successful, please confirm your email")
                             .build();
                 }
                 throw new BadRequestException("All fields must be the same as the first time you registered");
@@ -70,9 +73,9 @@ public class AuthenticationService {
                 .isConfirmed(false)
                 .build();
         accountantRepository.save(user);
-        String jwtToken = GenerateTokenAndSendEmailRegisterAccountant(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
+        GenerateTokenAndSendEmailRegisterAccountant(user);
+        return ResponsePayload.builder()
+                .message("Registration successful, please confirm your email")
                 .build();
     }
 
@@ -80,7 +83,7 @@ public class AuthenticationService {
         return true;
     }
 
-    private String GenerateTokenAndSendEmailRegisterAccountant(AccountantModel accountant){
+    private void GenerateTokenAndSendEmailRegisterAccountant(AccountantModel accountant){
         var jwtToken = jwtService.generateToken(accountant,Token.REGISTRATION);
         var token = TokenModel.builder()
                 .accountant_id(accountant.getId())
@@ -93,11 +96,10 @@ public class AuthenticationService {
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/auth/confirm-accountant?token=" + jwtToken;
         emailService.send(accountant.getEmail(),emailService.buildEmail(accountant.getName(),link));
-        return jwtToken;
     }
 
     @Transactional
-    public ResponseEntity<?> confirmTokenRegistration (String token) {
+    public ResponsePayload confirmTokenRegistration (String token) {
         TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
         Integer id;
         String role;
@@ -127,7 +129,9 @@ public class AuthenticationService {
             tokenModel.setExpired(true);
             tokenRepository.save(tokenModel);
             accountantRepository.save(accountantModel);
-            return ResponseEntity.ok("Confirmed");
+            return ResponsePayload.builder()
+                    .message("Confirmed")
+                    .build();
         }else if (role.equals(Role.CLIENT.name())){
             ClientModel clientModel = clientRepository.findById(id)
                     .orElseThrow(() -> new UsernameNotFoundException(String.format("Client with ID %s not found",id)));
@@ -137,12 +141,14 @@ public class AuthenticationService {
             tokenModel.setExpired(true);
             tokenRepository.save(tokenModel);
             clientRepository.save(clientModel);
-            return ResponseEntity.ok("Confirmed");
+            return ResponsePayload.builder()
+                    .message("Confirmed")
+                    .build();
         }
         throw new IllegalStateException("Something went wrong with the confirmation of the token");
     }
 
-    private AuthenticationResponse authenticateAccountant(AuthenticationRequest request) {
+    private ResponsePayload authenticateAccountant(AuthenticationRequest request) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(), request.getPassword()));
         } catch (DisabledException e) {
@@ -170,12 +176,24 @@ public class AuthenticationService {
                 .tokenFormat(Token.LOGIN)
                 .build();
         tokenRepository.save(token);
-        return AuthenticationResponse.builder()
+        AuthenticationResponse authenticationResponse = AuthenticationResponse.builder()
                 .token(jwtToken)
+                .CI(user.getCi())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .id(user.getId())
+                .lastname(user.getLastname())
+                .phoneNumber(user.getPhoneNumber())
+                .build();
+        List<Object> data = Collections.singletonList(authenticationResponse);
+        return ResponsePayload.builder()
+                .message("Login successful")
+                .data(data)
                 .build();
     }
 
-    public String registerClient(RegisterRequestClient request) throws BadRequestException {
+    public ResponsePayload registerClient(RegisterRequestClient request) throws BadRequestException {
         if (!isEmailValid(request.getEmail())){
             throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
         }
@@ -206,8 +224,12 @@ public class AuthenticationService {
                     String pw = request.getUserCI() + "_" + generateRandomPassword();
                     client.setPassword(passwordEncoder.encode(pw));
                     clientRepository.save(client);
-                    String jwtToken = GenerateTokenAndSendEmailRegisterClient(client);
-                    return pw;
+                    GenerateTokenAndSendEmailRegisterClient(client);
+                    List<Object> data = Collections.singletonList(pw);
+                    return ResponsePayload.builder()
+                            .message("Registration successful")
+                            .data(data)
+                            .build();
                 }
                 throw new BadRequestException("All fields must be the same as the first time you registered this user");
             }
@@ -229,11 +251,15 @@ public class AuthenticationService {
                 .accountant_id(accountant.getId())
                 .build();
         clientRepository.save(user);
-        String jwtToken = GenerateTokenAndSendEmailRegisterClient(user);
-        return pw;
+        GenerateTokenAndSendEmailRegisterClient(user);
+        List<Object> data = Collections.singletonList(pw);
+        return ResponsePayload.builder()
+                .message("Registration successful")
+                .data(data)
+                .build();
     }
 
-    private String GenerateTokenAndSendEmailRegisterClient(ClientModel client){
+    private void GenerateTokenAndSendEmailRegisterClient(ClientModel client){
         var jwtToken = jwtService.generateToken(client,Token.REGISTRATION);
         var token = TokenModel.builder()
                 .client_id(client.getId())
@@ -246,9 +272,8 @@ public class AuthenticationService {
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/auth/confirm-client?token=" + jwtToken;
         emailService.send(client.getEmail(),emailService.buildEmail(client.getName(),link));
-        return jwtToken;
     }
-    private AuthenticationResponse authenticateClient(AuthenticationRequest request) {
+    private ResponsePayload authenticateClient(AuthenticationRequest request) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
         } catch (DisabledException e) {
@@ -276,8 +301,20 @@ public class AuthenticationService {
                 .tokenFormat(Token.LOGIN)
                 .build();
         tokenRepository.save(token);
-        return AuthenticationResponse.builder()
+        AuthenticationResponse authenticationResponse = AuthenticationResponse.builder()
                 .token(jwtToken)
+                .CI(user.getCi())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .id(user.getId())
+                .lastname(user.getLastname())
+                .phoneNumber(user.getPhoneNumber())
+                .build();
+        List<Object> data = Collections.singletonList(authenticationResponse);
+        return ResponsePayload.builder()
+                .message("Login successful")
+                .data(data)
                 .build();
     }
 
@@ -305,7 +342,7 @@ public class AuthenticationService {
         tokenRepository.saveAll(validAccountantToken);
     }
 
-    public AuthenticationResponse login(LoginRequest loginRequest){
+    public ResponsePayload login(LoginRequest loginRequest){
         String role = loginRequest.getRole().name();
 
         if (role.equals(Role.ACCOUNTANT.name())){
