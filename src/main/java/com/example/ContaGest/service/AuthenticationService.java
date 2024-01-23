@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static com.example.ContaGest.service.PasswordService.generateRandomPassword;
 
@@ -43,7 +44,7 @@ public class AuthenticationService {
     private final EmailService emailService;
     public ResponsePayload registerAccountant(RegisterAccountantRequest request) throws BadRequestException {
         Optional<AccountantModel> accountantModel = accountantRepository.findByUsername(request.getCi());
-        if(!isEmailValid(request.getEmail())){
+        if(isEmailNotValid(request.getEmail())){
             throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
         }
         if(accountantModel.isPresent()){
@@ -82,8 +83,13 @@ public class AuthenticationService {
                 .build();
     }
 
-    private boolean isEmailValid(String email) {
-        return true;
+    private boolean isEmailNotValid(String email) throws BadRequestException {
+        String regexPattern = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
+        if (email == null)
+            throw new BadRequestException("Email is null");
+        return !Pattern.compile(regexPattern)
+                .matcher(email)
+                .matches();
     }
 
     private void GenerateTokenAndSendEmailRegisterAccountant(AccountantModel accountant){
@@ -197,7 +203,7 @@ public class AuthenticationService {
     }
 
     public ResponsePayload registerClient(RegisterClientRequest request) throws BadRequestException {
-        if (!isEmailValid(request.getEmail())){
+        if (isEmailNotValid(request.getEmail())){
             throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
         }
         String accountantUsername;
