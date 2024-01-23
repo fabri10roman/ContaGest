@@ -1,6 +1,9 @@
 package com.example.ContaGest.controller;
 
 import com.example.ContaGest.dto.*;
+import com.example.ContaGest.dto.request.LoginRequest;
+import com.example.ContaGest.dto.request.RegisterAccountantRequest;
+import com.example.ContaGest.dto.request.RegisterClientRequest;
 import com.example.ContaGest.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
@@ -22,7 +25,7 @@ public class AuthenticationController {
 
     @PostMapping("/register-accountant")
     @ResponseBody
-    public ResponsePayload registerAccountant(@RequestBody RegisterRequestAccountant request) throws BadRequestException {
+    public ResponsePayload registerAccountant(@RequestBody RegisterAccountantRequest request) throws BadRequestException {
         return authenticationService.registerAccountant(request);
     }
 
@@ -40,7 +43,7 @@ public class AuthenticationController {
 
     @PostMapping("/register-client")
     @ResponseBody
-    public ResponsePayload registerClient(@RequestBody RegisterRequestClient request) throws BadRequestException {
+    public ResponsePayload registerClient(@RequestBody RegisterClientRequest request) throws BadRequestException {
         return authenticationService.registerClient(request);
     }
 

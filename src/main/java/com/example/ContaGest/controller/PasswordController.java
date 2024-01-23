@@ -1,12 +1,11 @@
 package com.example.ContaGest.controller;
 
-import com.example.ContaGest.dto.ChangePasswordRequest;
-import com.example.ContaGest.dto.ForgotPasswordConfirmRequest;
-import com.example.ContaGest.dto.ForgotPasswordRequest;
+import com.example.ContaGest.dto.request.ChangePasswordRequest;
+import com.example.ContaGest.dto.request.ForgotPasswordConfirmRequest;
+import com.example.ContaGest.dto.request.ForgotPasswordRequest;
 import com.example.ContaGest.dto.ResponsePayload;
 import com.example.ContaGest.service.PasswordService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;

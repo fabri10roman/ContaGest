@@ -2,7 +2,7 @@ package com.example.ContaGest.service;
 
 
 import com.example.ContaGest.dto.ResponsePayload;
-import com.example.ContaGest.dto.SaveImageResponse;
+import com.example.ContaGest.dto.response.SaveImageResponse;
 import com.example.ContaGest.exception.ResourceNotFoundException;
 import io.jsonwebtoken.ExpiredJwtException;
 import com.example.ContaGest.model.ClientModel;

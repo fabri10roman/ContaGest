@@ -1,4 +1,4 @@
-package com.example.ContaGest.dto;
+package com.example.ContaGest.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RegisterRequestClient {
+public class RegisterAccountantRequest {
 
     private String lastname;
     private Integer number;
     private String name;
     private String email;
-    private String userCI;
-    private String token;
+    private String ci;
+    private String password;
 }

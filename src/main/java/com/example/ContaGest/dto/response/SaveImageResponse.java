@@ -1,4 +1,4 @@
-package com.example.ContaGest.dto;
+package com.example.ContaGest.dto.response;
 
 import lombok.Builder;
 

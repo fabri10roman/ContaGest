@@ -1,6 +1,6 @@
 package com.example.ContaGest.controller;
 
-import com.example.ContaGest.dto.PdfRequest;
+import com.example.ContaGest.dto.request.PdfRequest;
 import com.example.ContaGest.service.AccountantService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;

@@ -2,8 +2,11 @@ package com.example.ContaGest.service;
 
 
 import com.example.ContaGest.dto.ResponsePayload;
-import com.example.ContaGest.dto.*;
-import com.example.ContaGest.dto.AuthenticationResponse;
+import com.example.ContaGest.dto.request.LoginRequest;
+import com.example.ContaGest.dto.request.RegisterAccountantRequest;
+import com.example.ContaGest.dto.request.RegisterClientRequest;
+import com.example.ContaGest.dto.response.AuthenticationResponse;
+import com.example.ContaGest.dto.request.AuthenticationRequest;
 import com.example.ContaGest.exception.*;
 import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;
@@ -38,8 +41,8 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
-    public ResponsePayload registerAccountant(RegisterRequestAccountant request) throws BadRequestException {
-        Optional<AccountantModel> accountantModel = accountantRepository.findByUsername(request.getUserCI());
+    public ResponsePayload registerAccountant(RegisterAccountantRequest request) throws BadRequestException {
+        Optional<AccountantModel> accountantModel = accountantRepository.findByUsername(request.getCi());
         if(!isEmailValid(request.getEmail())){
             throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
         }
@@ -47,7 +50,7 @@ public class AuthenticationService {
             AccountantModel accountant = accountantModel.get();
             if (!accountant.isConfirmed()){
                 if (accountant.getEmail().equals(request.getEmail()) && accountant.getName().equals(request.getName())
-                        && accountant.getLastname().equals(request.getLastname()) && accountant.getCi().equals(request.getUserCI())
+                        && accountant.getLastname().equals(request.getLastname()) && accountant.getCi().equals(request.getCi())
                         && accountant.getPhoneNumber().equals(request.getNumber())
                         && passwordEncoder.matches(request.getPassword(),accountant.getPassword())
                 ){
@@ -59,10 +62,10 @@ public class AuthenticationService {
                 }
                 throw new BadRequestException("All fields must be the same as the first time you registered");
             }
-            throw new ConflictExcepcion(String.format("Accountant with CI %s already taken",request.getUserCI()));
+            throw new ConflictExcepcion(String.format("Accountant with CI %s already taken",request.getCi()));
         }
         var user = AccountantModel.builder()
-                .ci(request.getUserCI())
+                .ci(request.getCi())
                 .email(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())
@@ -193,7 +196,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    public ResponsePayload registerClient(RegisterRequestClient request) throws BadRequestException {
+    public ResponsePayload registerClient(RegisterClientRequest request) throws BadRequestException {
         if (!isEmailValid(request.getEmail())){
             throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
         }
@@ -212,16 +215,16 @@ public class AuthenticationService {
         if (tokenModel.isExpired() && tokenModel.isRevoke()) {
             throw new ExpiredJwtException(null,null,null);
         }
-        Optional<ClientModel> clientModel = clientRepository.findByUsername(request.getUserCI());
+        Optional<ClientModel> clientModel = clientRepository.findByUsername(request.getCi());
         if(clientModel.isPresent()){
             ClientModel client = clientModel.get();
             if (!client.isConfirmed()){
                 if (client.getEmail().equals(request.getEmail()) && client.getName().equals(request.getName())
-                        && client.getLastname().equals(request.getLastname()) && client.getCi().equals(request.getUserCI())
+                        && client.getLastname().equals(request.getLastname()) && client.getCi().equals(request.getCi())
                         && client.getPhoneNumber().equals(request.getNumber())
                 ){
                     revokeAllClientToken(client);
-                    String pw = request.getUserCI() + "_" + generateRandomPassword();
+                    String pw = request.getCi() + "_" + generateRandomPassword();
                     client.setPassword(passwordEncoder.encode(pw));
                     clientRepository.save(client);
                     GenerateTokenAndSendEmailRegisterClient(client);
@@ -233,13 +236,13 @@ public class AuthenticationService {
                 }
                 throw new BadRequestException("All fields must be the same as the first time you registered this user");
             }
-            throw new ConflictExcepcion(String.format("Client with CI %s already taken",request.getUserCI()));
+            throw new ConflictExcepcion(String.format("Client with CI %s already taken",request.getCi()));
         }
         AccountantModel accountant = accountantRepository.findByUsername(accountantUsername)
                 .orElseThrow(()->new UsernameNotFoundException(String.format("Accountant with username %s not found",accountantUsername)));
-        String pw = request.getUserCI() + "_" + generateRandomPassword();
+        String pw = request.getCi() + "_" + generateRandomPassword();
         var user = ClientModel.builder()
-                .ci(request.getUserCI())
+                .ci(request.getCi())
                 .email(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())

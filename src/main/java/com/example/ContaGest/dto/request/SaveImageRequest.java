@@ -1,4 +1,4 @@
-package com.example.ContaGest.dto;
+package com.example.ContaGest.dto.request;
 
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class SaveImage {
+public class SaveImageRequest {
 
     private MultipartFile file;
     private int month;

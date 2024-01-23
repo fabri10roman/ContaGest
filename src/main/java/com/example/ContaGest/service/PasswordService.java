@@ -1,8 +1,8 @@
 package com.example.ContaGest.service;
 
-import com.example.ContaGest.dto.ChangePasswordRequest;
-import com.example.ContaGest.dto.ForgotPasswordConfirmRequest;
-import com.example.ContaGest.dto.ForgotPasswordRequest;
+import com.example.ContaGest.dto.request.ChangePasswordRequest;
+import com.example.ContaGest.dto.request.ForgotPasswordConfirmRequest;
+import com.example.ContaGest.dto.request.ForgotPasswordRequest;
 import com.example.ContaGest.dto.ResponsePayload;
 import com.example.ContaGest.exception.ConflictExcepcion;
 import com.example.ContaGest.exception.ResourceNotFoundException;
@@ -14,7 +14,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 
 import java.security.Principal;
-import java.util.Collections;
 import java.util.List;
 
 @Service

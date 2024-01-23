@@ -1,4 +1,4 @@
-package com.example.ContaGest.dto;
+package com.example.ContaGest.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
