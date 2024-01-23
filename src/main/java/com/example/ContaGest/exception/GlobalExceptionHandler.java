@@ -1,6 +1,7 @@
 package com.example.ContaGest.exception;
 
 
+import com.example.ContaGest.dto.ExceptionPayload;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import org.apache.coyote.BadRequestException;
@@ -16,49 +17,49 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException e){
-        Payload payload = new Payload(HttpStatus.NOT_FOUND.value(),HttpStatus.NOT_FOUND.getReasonPhrase(),e.getMessage());
-        return new ResponseEntity<>(payload, HttpStatus.NOT_FOUND);
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.NOT_FOUND.value(),HttpStatus.NOT_FOUND.getReasonPhrase(),e.getMessage());
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.NOT_FOUND);
     }
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<?> handleUserNotFoundException(UsernameNotFoundException e){
-        Payload payload = new Payload(HttpStatus.NOT_FOUND.value(),HttpStatus.NOT_FOUND.getReasonPhrase(),e.getMessage());
-        return new ResponseEntity<>(payload, HttpStatus.NOT_FOUND);
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.NOT_FOUND.value(),HttpStatus.NOT_FOUND.getReasonPhrase(),e.getMessage());
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.NOT_FOUND);
     }
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<?> handleTokenExpiredException(ExpiredJwtException e){
-        Payload payload = new Payload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),"Token Expired");
-        return new ResponseEntity<>(payload, HttpStatus.FORBIDDEN);
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),"Token Expired");
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.FORBIDDEN);
     }
     @ExceptionHandler(SignatureException.class)
     public ResponseEntity<?> handleSignatureException(SignatureException e){
-        Payload payload = new Payload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),"Invalid Token");
-        return new ResponseEntity<>(payload, HttpStatus.FORBIDDEN);
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),"Invalid Token");
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(UserNotEnableExcepcion.class)
     public ResponseEntity<?> handleUserNotEnableExcepcion(UserNotEnableExcepcion e){
-        Payload payload = new Payload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),e.getMessage());
-        return new ResponseEntity<>(payload, HttpStatus.FORBIDDEN);
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),e.getMessage());
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.FORBIDDEN);
     }
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<?> handleIllegalStateException(IllegalStateException e){
-        Payload payload = new Payload(HttpStatus.INTERNAL_SERVER_ERROR.value(),HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),e.getMessage());
-        return new ResponseEntity<>(payload, HttpStatus.INTERNAL_SERVER_ERROR);
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.INTERNAL_SERVER_ERROR.value(),HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),e.getMessage());
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<?> handleBadCredentialsException(BadCredentialsException e){
-        Payload payload = new Payload(HttpStatus.UNAUTHORIZED.value(),HttpStatus.UNAUTHORIZED.getReasonPhrase(),e.getMessage());
-        return new ResponseEntity<>(payload, HttpStatus.UNAUTHORIZED);
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.UNAUTHORIZED.value(),HttpStatus.UNAUTHORIZED.getReasonPhrase(),e.getMessage());
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.UNAUTHORIZED);
     }
     @ExceptionHandler(ConflictExcepcion.class)
     public ResponseEntity<?> handleConflictException(ConflictExcepcion e){
-        Payload payload = new Payload(HttpStatus.CONFLICT.value(),HttpStatus.CONFLICT.getReasonPhrase(),e.getMessage());
-        return new ResponseEntity<>(payload, HttpStatus.CONFLICT);
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.CONFLICT.value(),HttpStatus.CONFLICT.getReasonPhrase(),e.getMessage());
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.CONFLICT);
     }
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<?> handleBadRequestException(BadRequestException e){
-        Payload payload = new Payload(HttpStatus.BAD_REQUEST.value(),HttpStatus.BAD_REQUEST.getReasonPhrase(),e.getMessage());
-        return new ResponseEntity<>(payload, HttpStatus.BAD_REQUEST);
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.BAD_REQUEST.value(),HttpStatus.BAD_REQUEST.getReasonPhrase(),e.getMessage());
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.BAD_REQUEST);
     }
 
 }
