@@ -50,6 +50,9 @@ public class AuthenticationService {
         if(accountantModelByUsername.isPresent()){
             AccountantModel accountant = accountantModelByUsername.get();
             if (!accountant.isConfirmed()){
+                if (!request.getPassword().equals(request.getConfirmPassword())){
+                    throw new BadRequestException("The password and the confirmation password do not match");
+                }
                 if (accountant.getEmail().equals(request.getEmail()) && accountant.getName().equals(request.getName())
                         && accountant.getLastname().equals(request.getLastname()) && accountant.getCi().equals(request.getCi())
                         && accountant.getPhoneNumber().equals(request.getNumber())
@@ -68,6 +71,9 @@ public class AuthenticationService {
         Optional<AccountantModel> accountantModelByEmail = accountantRepository.findByEmail(request.getEmail());
         if (accountantModelByEmail.isPresent()){
             throw new ConflictExcepcion(String.format("Email %s already taken", request.getEmail()));
+        }
+        if (!request.getPassword().equals(request.getConfirmPassword())){
+            throw new BadRequestException("The password and the confirmation password do not match");
         }
         var user = AccountantModel.builder()
                 .ci(request.getCi())

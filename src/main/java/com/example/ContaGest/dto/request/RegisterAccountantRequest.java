@@ -17,4 +17,5 @@ public class RegisterAccountantRequest {
     private String email;
     private String ci;
     private String password;
+    private String confirmPassword;
 }
