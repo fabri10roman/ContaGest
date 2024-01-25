@@ -109,6 +109,7 @@ public class AuthenticationService {
                 .isExpired(false)
                 .isRevoke(false)
                 .tokenFormat(Token.REGISTRATION)
+                .email(accountant.getEmail())
                 .build();
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/auth/confirm-accountant?token=" + jwtToken;
@@ -189,6 +190,7 @@ public class AuthenticationService {
                 .isExpired(false)
                 .isRevoke(false)
                 .tokenFormat(Token.LOGIN)
+                .email(user.getEmail())
                 .build();
         tokenRepository.save(token);
         AuthenticationResponse authenticationResponse = AuthenticationResponse.builder()
@@ -285,6 +287,7 @@ public class AuthenticationService {
                 .isExpired(false)
                 .isRevoke(false)
                 .tokenFormat(Token.REGISTRATION)
+                .email(client.getEmail())
                 .build();
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/auth/confirm-client?token=" + jwtToken;
@@ -316,6 +319,7 @@ public class AuthenticationService {
                 .isExpired(false)
                 .isRevoke(false)
                 .tokenFormat(Token.LOGIN)
+                .email(user.getEmail())
                 .build();
         tokenRepository.save(token);
         AuthenticationResponse authenticationResponse = AuthenticationResponse.builder()
@@ -493,6 +497,7 @@ public class AuthenticationService {
                 .isExpired(false)
                 .isRevoke(false)
                 .tokenFormat(Token.CHANGE_EMAIL)
+                .email(newEmail)
                 .build();
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/auth/confirm-change-email?token=" + jwtToken;
@@ -507,6 +512,7 @@ public class AuthenticationService {
                 .isExpired(false)
                 .isRevoke(false)
                 .tokenFormat(Token.CHANGE_EMAIL)
+                .email(newEmail)
                 .build();
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/auth/confirm-change-email?token=" + jwtToken;

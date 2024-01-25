@@ -141,6 +141,7 @@ public class PasswordService {
                 .isExpired(false)
                 .isRevoke(false)
                 .tokenFormat(Token.FORGOT_PASSWORD)
+                .email(accountant.getEmail())
                 .build();
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/password/confirm-forgot-password?token=" + jwtToken;
@@ -156,6 +157,7 @@ public class PasswordService {
                 .isExpired(false)
                 .isRevoke(false)
                 .tokenFormat(Token.FORGOT_PASSWORD)
+                .email(client.getEmail())
                 .build();
         tokenRepository.save(token);
         String link = "http://localhost:8080/api/v1/password/confirm-forgot-password?token=" + jwtToken;

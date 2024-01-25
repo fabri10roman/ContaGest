@@ -27,6 +27,7 @@ public class TokenModel {
     private Token tokenFormat;
     private Integer accountant_id;
     private Integer client_id;
+    private String email;
 
 
     @ManyToOne

@@ -113,7 +113,7 @@ public class JwtService {
         throw new IllegalArgumentException("Error generating token");
     }
     private String generateChangeEmail(Map<String, Object> claims, UserDetails userDetails) {
-        int timeMillis = 900000; //15min
+        int timeMillis = 30000; //15min
         AccountantModel accountantModel = null;
         ClientModel clientModel = null;
         Integer id = null;
