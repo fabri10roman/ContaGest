@@ -5,6 +5,7 @@ import com.example.ContaGest.model.Token;
 import com.example.ContaGest.repository.TokenRepository;
 import com.example.ContaGest.service.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,9 +37,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-        @NonNull HttpServletRequest request,
-        @NonNull HttpServletResponse response,
-        @NonNull FilterChain filterChain
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain
     ){
 
         final String authHeader = request.getHeader("Authorization");
@@ -56,10 +57,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 var isTokenValid = tokenRepository.findByToken(jwt)
                         .map(t -> !t.isExpired() && !t.isRevoke() && t.getTokenFormat().equals(Token.LOGIN))
                         .orElse(false);
-                if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
+                if (!isTokenValid){
+                    throw new ExpiredJwtException(null,null,null);
+                }
+                if (jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                }else{
+                    throw new SignatureException("Invalid token");
                 }
             }
             filterChain.doFilter(request, response);
