@@ -92,8 +92,7 @@ public class AuthenticationService {
                 .message("Registration successful, please confirm your email")
                 .build();
     }
-
-    private boolean isEmailNotValid(String email) throws BadRequestException {
+    public boolean isEmailNotValid(String email) throws BadRequestException {
         String regexPattern = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
         if (email == null)
             throw new BadRequestException("Email is null");
@@ -101,7 +100,6 @@ public class AuthenticationService {
                 .matcher(email)
                 .matches();
     }
-
     private void GenerateTokenAndSendEmailRegisterAccountant(AccountantModel accountant){
         var jwtToken = jwtService.generateToken(accountant,Token.REGISTRATION);
         var token = TokenModel.builder()
@@ -116,7 +114,6 @@ public class AuthenticationService {
         String link = "http://localhost:8080/api/v1/auth/confirm-accountant?token=" + jwtToken;
         emailService.send(accountant.getEmail(),emailService.buildEmail(accountant.getName(),link));
     }
-
     @Transactional
     public ResponsePayload confirmTokenRegistration (String token) {
         TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
@@ -166,7 +163,6 @@ public class AuthenticationService {
         }
         throw new IllegalStateException("Something went wrong with the confirmation of the token");
     }
-
     private ResponsePayload authenticateAccountant(AuthenticationRequest request) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(), request.getPassword()));
@@ -211,7 +207,6 @@ public class AuthenticationService {
                 .data(data)
                 .build();
     }
-
     public ResponsePayload registerClient(RegisterClientRequest request) throws BadRequestException {
         if (isEmailNotValid(request.getEmail())){
             throw new BadRequestException(String.format("Email %s not valid",request.getEmail()));
@@ -281,7 +276,6 @@ public class AuthenticationService {
                 .data(data)
                 .build();
     }
-
     private void GenerateTokenAndSendEmailRegisterClient(ClientModel client){
         var jwtToken = jwtService.generateToken(client,Token.REGISTRATION);
         var token = TokenModel.builder()
@@ -340,7 +334,6 @@ public class AuthenticationService {
                 .data(data)
                 .build();
     }
-
     public void revokeAllClientToken (ClientModel clientModel){
         var validClientToken = tokenRepository.findAllValidTokenByClientId(clientModel.getId());
         if (validClientToken.isEmpty()){
@@ -352,7 +345,6 @@ public class AuthenticationService {
         });
         tokenRepository.saveAll(validClientToken);
     }
-
     public void revokeAllAccountantToken (AccountantModel accountantModel){
         var validAccountantToken = tokenRepository.findAllValidTokenByAccountantId(accountantModel.getId());
         if (validAccountantToken.isEmpty()){
@@ -364,7 +356,6 @@ public class AuthenticationService {
         });
         tokenRepository.saveAll(validAccountantToken);
     }
-
     public ResponsePayload login(LoginRequest loginRequest){
         String role = loginRequest.getRole().name();
 
@@ -382,7 +373,6 @@ public class AuthenticationService {
         }
         throw new IllegalStateException("Something went wrong with the authentication");
     }
-
     public void revokeAllAccountantTokenButThis(AccountantModel user, String token) {
         var validAccountantToken = tokenRepository.findAllValidTokenByAccountantId(user.getId());
         if (validAccountantToken.isEmpty()){
@@ -397,7 +387,6 @@ public class AuthenticationService {
         tokenRepository.saveAll(validAccountantToken);
 
     }
-
     public void revokeAllClientTokenButThis(ClientModel user, String token) {
         var validClientToken = tokenRepository.findAllValidTokenByClientId(user.getId());
         if (validClientToken.isEmpty()){
@@ -411,4 +400,117 @@ public class AuthenticationService {
         });
         tokenRepository.saveAll(validClientToken);
     }
+    public ResponsePayload confirmChangeEmail(String token) {
+        TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
+        String email = tokenModel.getEmail();
+        Integer id;
+        String role;
+        try{
+            id = jwtService.getId(token);
+            role = jwtService.getRole(token);
+        }catch (ExpiredJwtException e){
+            tokenModel.setRevoke(true);
+            tokenModel.setExpired(true);
+            tokenRepository.save(tokenModel);
+            if (tokenModel.getTokenFormat().name().equals(Token.CHANGE_EMAIL.name())) {
+                if (tokenModel.getClient_id() != null) {
+                    ClientModel clientModel = clientRepository.findById(tokenModel.getClient_id())
+                            .orElseThrow(() -> new UsernameNotFoundException(String.format("Client with ID %s not found", tokenModel.getClient_id())));
+                    if (!email.equals(clientModel.getEmail())){
+                        throw new ExpiredJwtException(null,null,"Token expired");
+                    }
+                    if (!clientModel.isConfirmed()) {
+                        GenerateTokenAndSendEmailChangeEmailClient(clientModel, clientModel.getEmail());
+                        throw new ExpiredJwtException(null,null,"Token expired. New email send");
+                    }else {
+                        throw new ConflictExcepcion(String.format("The email %s is already confirmed",clientModel.getEmail()));
+                    }
+                } else if (tokenModel.getAccountant_id() != null) {
+                    AccountantModel accountantModel = accountantRepository.findById(tokenModel.getAccountant_id())
+                            .orElseThrow(() -> new UsernameNotFoundException(String.format("Accountant with ID %s not found", tokenModel.getAccountant_id())));
+                    if (!email.equals(accountantModel.getEmail())){
+                        throw new ExpiredJwtException(null,null,"Token expired");
+                    }
+                    if (!accountantModel.isConfirmed()) {
+                        GenerateTokenAndSendEmailChangeEmailAccountant(accountantModel, accountantModel.getEmail());
+                        throw new ExpiredJwtException(null,null,"Token expired. New email send");
+                    } else {
+                        throw new ConflictExcepcion(String.format("The email %s is already confirmed",accountantModel.getEmail()));
+                    }
+                } else {
+                    throw new IllegalStateException("The token does not belong to any accountant or client");
+                }
+            }else {
+                throw new IllegalStateException("The token is not for change email");
+            }
+        }catch (SignatureException e){
+            throw new SignatureException(null);
+        }
+        if (tokenModel.isExpired() && tokenModel.isRevoke()) {
+            throw new ExpiredJwtException(null,null,null);
+        }
+        if (!tokenModel.getTokenFormat().name().equals(Token.CHANGE_EMAIL.name())) {
+            throw new IllegalStateException("The token is not for change email");
+        }
+        if(role.equals(Role.ACCOUNTANT.name())){
+            AccountantModel accountantModel = accountantRepository.findById(id)
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Accountant with ID %s not found",id)));
+            if (accountantModel.isConfirmed()){
+                throw new ConflictExcepcion(String.format("The email %s is already confirmed",accountantModel.getEmail()));
+            }
+            accountantModel.setConfirmed(true);
+            tokenModel.setRevoke(true);
+            tokenModel.setExpired(true);
+            tokenRepository.save(tokenModel);
+            accountantRepository.save(accountantModel);
+            return ResponsePayload.builder()
+                    .message("Confirmed")
+                    .build();
+        }else if (role.equals(Role.CLIENT.name())){
+            ClientModel clientModel = clientRepository.findById(id)
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Client with ID %s not found",id)));
+            if (clientModel.isConfirmed()){
+                throw new ConflictExcepcion(String.format("The email %s is already confirmed",clientModel.getEmail()));
+            }
+            clientModel.setConfirmed(true);
+            tokenModel.setRevoke(true);
+            tokenModel.setExpired(true);
+            tokenRepository.save(tokenModel);
+            clientRepository.save(clientModel);
+            return ResponsePayload.builder()
+                    .message("Confirmed")
+                    .build();
+        }
+        throw new IllegalStateException("Something went wrong with the confirmation of the token");
+
+    }
+    public void GenerateTokenAndSendEmailChangeEmailClient(ClientModel clientModel, String newEmail) {
+        String jwtToken = jwtService.generateToken(clientModel, Token.CHANGE_EMAIL);
+        var token = TokenModel.builder()
+                .client_id(clientModel.getId())
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .isExpired(false)
+                .isRevoke(false)
+                .tokenFormat(Token.CHANGE_EMAIL)
+                .build();
+        tokenRepository.save(token);
+        String link = "http://localhost:8080/api/v1/auth/confirm-change-email?token=" + jwtToken;
+        emailService.send(newEmail,emailService.buildEmail(clientModel.getName(),link));
+    }
+    public void GenerateTokenAndSendEmailChangeEmailAccountant(AccountantModel accountant, String newEmail) {
+        String jwtToken = jwtService.generateToken(accountant, Token.CHANGE_EMAIL);
+        var token = TokenModel.builder()
+                .accountant_id(accountant.getId())
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .isExpired(false)
+                .isRevoke(false)
+                .tokenFormat(Token.CHANGE_EMAIL)
+                .build();
+        tokenRepository.save(token);
+        String link = "http://localhost:8080/api/v1/auth/confirm-change-email?token=" + jwtToken;
+        emailService.send(newEmail,emailService.buildEmail(accountant.getName(),link));
+    }
+
 }

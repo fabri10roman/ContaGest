@@ -31,16 +31,13 @@ public class JwtService {
     public String getUsername(String token) {
         return getClaim(token, Claims::getSubject);
     }
-
     public String getRole(String token){
         return getClaim(token,claims -> (String) claims.get("Role"));
     }
-
     public <T> T getClaim (String token, Function<Claims, T> claimsResolver){
         final Claims claims = getALlClaims(token);
         return claimsResolver.apply(claims);
     }
-
     private Claims getALlClaims(String token){
         return Jwts
                 .parser()
@@ -49,7 +46,6 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
     private String generateTokenRegistration(UserDetails userDetails, Map<String, Object> claims){
         int timeMillis = 0;
         AccountantModel accountantModel;
@@ -73,7 +69,6 @@ public class JwtService {
                 .signWith(getSiginKey(), Jwts.SIG.HS256)
                 .compact();
     }
-
     private String generateTokenForgotPassword(UserDetails userDetails, Map<String, Object> claims) {
         int timeMillis = 900000; //15min
         AccountantModel accountantModel = null;
@@ -99,7 +94,6 @@ public class JwtService {
                 .signWith(getSiginKey(), Jwts.SIG.HS256)
                 .compact();
     }
-
     public String generateToken(UserDetails userDetails, Token tokenFormat){
         Map<String, Object> claims = new HashMap<>();
         String role = userDetails.getAuthorities().stream()
@@ -113,10 +107,36 @@ public class JwtService {
             return generateTokenForgotPassword(userDetails, claims);
         } else if (tokenFormat.equals(Token.LOGIN)) {
             return generateToken(claims, userDetails);
+        } else if (tokenFormat.equals(Token.CHANGE_EMAIL)){
+            return generateChangeEmail(claims, userDetails);
         }
         throw new IllegalArgumentException("Error generating token");
     }
-
+    private String generateChangeEmail(Map<String, Object> claims, UserDetails userDetails) {
+        int timeMillis = 900000; //15min
+        AccountantModel accountantModel = null;
+        ClientModel clientModel = null;
+        Integer id = null;
+        String role = claims.get("Role").toString();
+        if (userDetails instanceof AccountantModel) {
+            accountantModel = (AccountantModel) userDetails;
+            id = accountantModel.getId();
+        } else if (userDetails instanceof ClientModel) {
+            clientModel = (ClientModel) userDetails;
+            id = clientModel.getId();
+        }
+        if ((role.equals(Role.ACCOUNTANT.name()) && accountantModel == null) || (role.equals(Role.CLIENT.name()) && clientModel == null)) {
+            throw new IllegalArgumentException("Error generating token");
+        }
+        claims.put("ID", id);
+        return Jwts
+                .builder()
+                .claims().empty().add(claims).and()
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + timeMillis))
+                .signWith(getSiginKey(), Jwts.SIG.HS256)
+                .compact();
+    }
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails){
         int timeMillis = 86400000; //24hours
         return Jwts
@@ -128,7 +148,6 @@ public class JwtService {
                 .signWith(getSiginKey(), Jwts.SIG.HS256)
                 .compact();
     }
-
     private SecretKey getSiginKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);

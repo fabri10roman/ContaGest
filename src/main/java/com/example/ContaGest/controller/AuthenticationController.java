@@ -47,4 +47,9 @@ public class AuthenticationController {
         return authenticationService.registerClient(request);
     }
 
+    @GetMapping("/confirm-change-email")
+    @ResponseBody
+    public ResponsePayload confirmChangeEmail(@RequestParam("token") String token){
+        return authenticationService.confirmChangeEmail(token);
+    }
 }
