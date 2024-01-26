@@ -8,6 +8,8 @@ import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -35,12 +37,6 @@ public class GlobalExceptionHandler {
         ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),"Invalid Token");
         return new ResponseEntity<>(exceptionPayload, HttpStatus.FORBIDDEN);
     }
-
-    @ExceptionHandler(UserNotEnableExcepcion.class)
-    public ResponseEntity<?> handleUserNotEnableExcepcion(UserNotEnableExcepcion e){
-        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),e.getMessage());
-        return new ResponseEntity<>(exceptionPayload, HttpStatus.FORBIDDEN);
-    }
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<?> handleIllegalStateException(IllegalStateException e){
         ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.INTERNAL_SERVER_ERROR.value(),HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),e.getMessage());
@@ -60,6 +56,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleBadRequestException(BadRequestException e){
         ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.BAD_REQUEST.value(),HttpStatus.BAD_REQUEST.getReasonPhrase(),e.getMessage());
         return new ResponseEntity<>(exceptionPayload, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<?> handleDisabledException(DisabledException e){
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),e.getMessage());
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.FORBIDDEN);
+    }
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<?> handleLockedException(LockedException e){
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),e.getMessage());
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.FORBIDDEN);
     }
 
 }

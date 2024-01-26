@@ -6,7 +6,6 @@ import com.example.ContaGest.dto.request.ForgotPasswordRequest;
 import com.example.ContaGest.dto.ResponsePayload;
 import com.example.ContaGest.exception.ConflictExcepcion;
 import com.example.ContaGest.exception.ResourceNotFoundException;
-import com.example.ContaGest.exception.UserNotEnableExcepcion;
 import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;
 import com.example.ContaGest.repository.ClientRepository;
@@ -105,7 +104,7 @@ public class PasswordService {
                 throw new DisabledException(String.format("The client with email %s is disabled",email));
             }
             if (!client.isConfirmed()){
-                throw new UserNotEnableExcepcion(String.format("The email %s is not confirmed",email));
+                throw new ConflictExcepcion(String.format("The email %s is not confirmed",email));
             }
             List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordClientByClientID(client.getId());
             CheckForgotToken(tokenModel);
@@ -120,7 +119,7 @@ public class PasswordService {
             throw new DisabledException(String.format("The accountant with email %s is disabled",email));
         }
         if (!accountant.isConfirmed()){
-            throw new UserNotEnableExcepcion(String.format("The email %s is not confirmed",email));
+            throw new ConflictExcepcion(String.format("The email %s is not confirmed",email));
         }
         List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordAccountantByAccountantID(accountant.getId());
         CheckForgotToken(tokenModel);

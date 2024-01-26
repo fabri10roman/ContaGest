@@ -168,18 +168,18 @@ public class AuthenticationService {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(), request.getPassword()));
         } catch (DisabledException e) {
-            throw new UserNotEnableExcepcion(String.format("The accountant with CI %s is not enable", request.getCi()));
+            throw new DisabledException(String.format("The accountant with CI %s is not enable", request.getCi()));
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException(String.format("Password incorrect for accountant with CI %s", request.getCi()));
         } catch (LockedException e) {
-            throw new UserNotEnableExcepcion(String.format("The accountant with CI %s is locked", request.getCi()));
+            throw new LockedException(String.format("The accountant with CI %s is locked", request.getCi()));
         } catch (Exception e) {
             throw new IllegalStateException("Something went wrong with the authentication");
         }
         var user = accountantRepository.findByUsername(request.getCi()).
                 orElseThrow(()-> new UsernameNotFoundException(String.format("The accountant with CI %s not found",request.getCi())));
         if (!user.isConfirmed()){
-            throw new UserNotEnableExcepcion(String.format("The email %s is not confirmed",user.getEmail()));
+            throw new ConflictExcepcion(String.format("The email %s is not confirmed",user.getEmail()));
         }
         revokeAllAccountantToken(user);
         var jwtToken = jwtService.generateToken(user,Token.LOGIN);
@@ -297,11 +297,11 @@ public class AuthenticationService {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCi(),request.getPassword()));
         } catch (DisabledException e) {
-            throw new UserNotEnableExcepcion(String.format("The client with CI %s is not enable", request.getCi()));
+            throw new DisabledException(String.format("The client with CI %s is not enable", request.getCi()));
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException(String.format("Password incorrect for client with CI %s", request.getCi()));
         } catch (LockedException e) {
-            throw new UserNotEnableExcepcion(String.format("The client with CI %s is locked", request.getCi()));
+            throw new LockedException(String.format("The client with CI %s is locked", request.getCi()));
         } catch (Exception e) {
             throw new IllegalStateException("Something went wrong with the authentication");
         }
@@ -486,7 +486,6 @@ public class AuthenticationService {
                     .build();
         }
         throw new IllegalStateException("Something went wrong with the confirmation of the token");
-
     }
     public void GenerateTokenAndSendEmailChangeEmailClient(ClientModel clientModel, String newEmail) {
         String jwtToken = jwtService.generateToken(clientModel, Token.CHANGE_EMAIL);
