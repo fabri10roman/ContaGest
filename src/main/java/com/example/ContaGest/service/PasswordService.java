@@ -6,6 +6,7 @@ import com.example.ContaGest.dto.request.ForgotPasswordRequest;
 import com.example.ContaGest.dto.ResponsePayload;
 import com.example.ContaGest.exception.ConflictExcepcion;
 import com.example.ContaGest.exception.ResourceNotFoundException;
+import com.example.ContaGest.exception.UserNotEnableExcepcion;
 import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;
 import com.example.ContaGest.repository.ClientRepository;
@@ -15,6 +16,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -99,6 +101,12 @@ public class PasswordService {
         if (role.equals(Role.CLIENT.name())){
             ClientModel client = clientRepository.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException(String.format("Client with email %s not found",email)));
+            if (!client.isEnable()){
+                throw new DisabledException(String.format("The client with email %s is disabled",email));
+            }
+            if (!client.isConfirmed()){
+                throw new UserNotEnableExcepcion(String.format("The email %s is not confirmed",email));
+            }
             List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordClientByClientID(client.getId());
             CheckForgotToken(tokenModel);
             GenerateTokenAndSendEmailForgotPasswordClient(client);
@@ -108,6 +116,12 @@ public class PasswordService {
         }
         AccountantModel accountant = accountantRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(String.format("Accountant with %s email not found",email)));
+        if (!accountant.isEnable()){
+            throw new DisabledException(String.format("The accountant with email %s is disabled",email));
+        }
+        if (!accountant.isConfirmed()){
+            throw new UserNotEnableExcepcion(String.format("The email %s is not confirmed",email));
+        }
         List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordAccountantByAccountantID(accountant.getId());
         CheckForgotToken(tokenModel);
         GenerateTokenAndSendEmailForgotPasswordAccountant(accountant);
