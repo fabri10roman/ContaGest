@@ -8,7 +8,6 @@ import com.example.ContaGest.service.PasswordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/v1/password")
@@ -19,8 +18,8 @@ public class PasswordController {
 
     @PatchMapping("/change")
     @ResponseBody
-    public ResponsePayload changePassword(@RequestBody ChangePasswordRequest request, Principal connectedUser){
-        return passwordService.changePassword(request,connectedUser);
+    public ResponsePayload changePassword(@RequestBody ChangePasswordRequest request){
+        return passwordService.changePassword(request);
 
     }
     @PostMapping("/password-forgot")

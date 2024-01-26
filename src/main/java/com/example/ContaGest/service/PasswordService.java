@@ -16,14 +16,12 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 
-import java.security.Principal;
 import java.util.List;
 
 @Service
@@ -41,10 +39,11 @@ public class PasswordService {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String ALLOWED_CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÑabcdefghijklmnopqrstuvwxyzñ";
 
-    public ResponsePayload changePassword(ChangePasswordRequest request, Principal connectedUser) {
+    public ResponsePayload changePassword(ChangePasswordRequest request) {
         String jwt = request.getToken();
         TokenModel tokenModel = tokenRepository.findByToken(jwt).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
         String role;
+        String username = jwtService.getUsername(jwt);
         try{
             role = jwtService.getRole(jwt);
         }catch (ExpiredJwtException e){
@@ -59,17 +58,24 @@ public class PasswordService {
             throw new ExpiredJwtException(null,null,null);
         }
         if (role.equals(Role.ACCOUNTANT.name())){
-            changePasswordAccount(request,connectedUser);
+            AccountantModel accountant = accountantRepository.findByUsername(username)
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Accountant with CI %s not found",username)));
+            String email = accountant.getEmail();
+            changePasswordAccount(request,accountant);
+            emailService.send(email,"Password changed. Your password has been changed, if you did not do this, please contact us");
         }else if (role.equals(Role.CLIENT.name())){
-            changePasswordClient(request,connectedUser);
+            ClientModel client = clientRepository.findByUsername(username)
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Client with CI %s not found",username)));
+            String email = client.getEmail();
+            changePasswordClient(request,client);
+            emailService.send(email,"Password changed. Your password has been changed, if you did not do this, please contact us");
         }
         return ResponsePayload.builder()
                 .message("Password changed successfully")
                 .build();
     }
 
-    private void changePasswordAccount(ChangePasswordRequest request, Principal connectedUser) {
-        AccountantModel user = (AccountantModel) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+    private void changePasswordAccount(ChangePasswordRequest request, AccountantModel user) {
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BadCredentialsException("The current password does not match");
         }
@@ -81,8 +87,7 @@ public class PasswordService {
         authenticationService.revokeAllAccountantTokenButThis(user,request.getToken());
     }
 
-    private void changePasswordClient(ChangePasswordRequest request, Principal connectedUser) {
-        ClientModel user = (ClientModel) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+    private void changePasswordClient(ChangePasswordRequest request, ClientModel user) {
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BadCredentialsException("The current password does not match");
         }
