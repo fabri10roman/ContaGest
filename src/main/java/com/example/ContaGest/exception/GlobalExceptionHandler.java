@@ -29,12 +29,24 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<?> handleTokenExpiredException(ExpiredJwtException e){
-        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),"Token Expired");
+        String message = e.getMessage();
+        ExceptionPayload exceptionPayload;
+        if (message != null && !message.contains("Allowed clock skew")) {
+            exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase(),e.getMessage());
+        } else {
+            exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase(),"Token Expired");
+        }
         return new ResponseEntity<>(exceptionPayload, HttpStatus.FORBIDDEN);
     }
     @ExceptionHandler(SignatureException.class)
     public ResponseEntity<?> handleSignatureException(SignatureException e){
-        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),"Invalid Token");
+        String message = e.getMessage();
+        ExceptionPayload exceptionPayload;
+        if (message != null && !message.contains("JWT signature does not match locally computed signature")) {
+            exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase(),e.getMessage());
+        } else {
+            exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase(),"Invalid Token");
+        }
         return new ResponseEntity<>(exceptionPayload, HttpStatus.FORBIDDEN);
     }
     @ExceptionHandler(IllegalStateException.class)
