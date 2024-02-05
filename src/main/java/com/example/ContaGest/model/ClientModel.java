@@ -43,7 +43,7 @@ public class ClientModel implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
     @Column(nullable = false)
-    private Integer phoneNumber;
+    private String phoneNumber;
     private boolean isEnable = false;
     private boolean isConfirmed = false;
     private Integer accountant_id;

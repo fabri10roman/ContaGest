@@ -7,6 +7,6 @@ public class ChangePersonalDataAccountantRequest {
     private String name;
     private String lastName;
     private String email;
-    private Integer phoneNumber;
+    private String phoneNumber;
     private String token;
 }

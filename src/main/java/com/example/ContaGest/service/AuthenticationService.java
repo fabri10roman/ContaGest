@@ -55,7 +55,7 @@ public class AuthenticationService {
                 }
                 if (accountant.getEmail().equals(request.getEmail()) && accountant.getName().equals(request.getName())
                         && accountant.getLastname().equals(request.getLastname()) && accountant.getCi().equals(request.getCi())
-                        && accountant.getPhoneNumber().equals(request.getNumber())
+                        && accountant.getPhoneNumber().equals(request.getPhoneNumber())
                         && passwordEncoder.matches(request.getPassword(),accountant.getPassword())
                 ){
                     revokeAllAccountantToken(accountant);
@@ -80,7 +80,7 @@ public class AuthenticationService {
                 .email(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())
-                .phoneNumber(request.getNumber())
+                .phoneNumber(request.getPhoneNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.ACCOUNTANT)
                 .isEnable(false)
@@ -234,7 +234,7 @@ public class AuthenticationService {
             if (!client.isConfirmed()){
                 if (client.getEmail().equals(request.getEmail()) && client.getName().equals(request.getName())
                         && client.getLastname().equals(request.getLastname()) && client.getCi().equals(request.getCi())
-                        && client.getPhoneNumber().equals(request.getNumber())
+                        && client.getPhoneNumber().equals(request.getPhoneNumber())
                 ){
                     revokeAllClientToken(client);
                     String pw = request.getCi() + "_" + generateRandomPassword();
@@ -263,7 +263,7 @@ public class AuthenticationService {
                 .email(request.getEmail())
                 .name(request.getName())
                 .lastname(request.getLastname())
-                .phoneNumber(request.getNumber())
+                .phoneNumber(request.getPhoneNumber())
                 .password(passwordEncoder.encode(pw))
                 .role(Role.CLIENT)
                 .isEnable(false)
