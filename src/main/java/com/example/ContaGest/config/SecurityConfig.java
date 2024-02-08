@@ -49,21 +49,16 @@ public class SecurityConfig {
                                 "api/v1/auth/confirm-client",
                                 "api/v1/password/confirm-forgot-password",
                                 "api/v1/password/password-forgot",
-                                "/api/v1/img/**",
                                 "/api/v1/auth/confirm-change-email"
                                 ).permitAll()
-                        .requestMatchers(
-                                "/api/v1/auth/authenticate-accountant",
-                                "/api/v1/auth/authenticate-client",
-                                "/api/v1/auth/authenticate-client"
-                        ).denyAll()
                         .requestMatchers(
                                 "/api/v1/auth/register-client",
                                 "/api/v1/accountant/**"
                                 )
                         .hasAuthority(Role.ACCOUNTANT.name())
                         .requestMatchers(
-                                "/api/v1/client/**"
+                                "/api/v1/client/**",
+                                "/api/v1/img/**"
                         ).hasAuthority(Role.CLIENT.name())
                         .anyRequest()
                         .authenticated()
