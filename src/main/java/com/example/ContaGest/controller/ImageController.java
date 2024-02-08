@@ -1,10 +1,15 @@
 package com.example.ContaGest.controller;
 
+import com.example.ContaGest.dto.ResponsePayload;
+import com.example.ContaGest.dto.request.SaveImageRequest;
+import com.example.ContaGest.service.ClientService;
 import com.example.ContaGest.service.ImageService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/img")
@@ -20,5 +25,15 @@ public class ImageController {
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(imageService.getBinaryImage(id).getImg());
     }
+    @PostMapping()
+    @ResponseBody
+    public ResponsePayload saveImage(SaveImageRequest saveImageRequest) throws IOException {
+        return imageService.saveImage(saveImageRequest.getMonth(), saveImageRequest.getFile().getBytes(), saveImageRequest.getYear(), saveImageRequest.getToken());
+    }
 
+    @DeleteMapping("/{imgID}")
+    @ResponseBody
+    public ResponsePayload deleteImage(@PathVariable Integer imgID) {
+        return imageService.deleteImage(imgID);
+    }
 }

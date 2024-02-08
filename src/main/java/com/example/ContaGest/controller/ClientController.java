@@ -17,18 +17,6 @@ public class ClientController {
 
     private ClientService clientService;
 
-    @PostMapping("/save-img")
-    @ResponseBody
-    public ResponsePayload saveImage(SaveImageRequest saveImageRequest) throws IOException {
-        return clientService.saveImage(saveImageRequest.getMonth(), saveImageRequest.getFile().getBytes(), saveImageRequest.getYear(), saveImageRequest.getToken());
-    }
-
-    @DeleteMapping("/delete-img/{imgID}")
-    @ResponseBody
-    public ResponsePayload deleteImage(@PathVariable Integer imgID) {
-        return clientService.deleteImage(imgID);
-    }
-
     @PatchMapping()
     @ResponseBody
     public ResponsePayload changePersonalData(@RequestBody ChangePersonalDataClientRequest changePersonalDataClientRequest) throws BadRequestException {
