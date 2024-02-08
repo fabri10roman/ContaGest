@@ -19,6 +19,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 
@@ -34,11 +35,12 @@ public class PasswordService {
     private final JwtService jwtService;
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
-    private final AuthenticationService authenticationService;
-
+    private final TokenService tokenService;
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String ALLOWED_CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÑabcdefghijklmnopqrstuvwxyzñ";
 
+
+    @Transactional
     public ResponsePayload changePassword(ChangePasswordRequest request) {
         String jwt = request.getToken();
         TokenModel tokenModel = tokenRepository.findByToken(jwt).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
@@ -84,7 +86,7 @@ public class PasswordService {
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         accountantRepository.save(user);
-        authenticationService.revokeAllAccountantTokenButThis(user,request.getToken());
+        tokenService.revokeAllAccountantTokenButThis(user,request.getToken());
     }
 
     private void changePasswordClient(ChangePasswordRequest request, ClientModel user) {
@@ -96,9 +98,10 @@ public class PasswordService {
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         clientRepository.save(user);
-        authenticationService.revokeAllClientTokenButThis(user,request.getToken());
+        tokenService.revokeAllClientTokenButThis(user,request.getToken());
     }
 
+    @Transactional
     public ResponsePayload forgotPassword(ForgotPasswordRequest request) {
         String email = request.getEmail();
         String role = request.getRole();
@@ -113,7 +116,7 @@ public class PasswordService {
             }
             List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordClientByClientID(client.getId());
             CheckForgotToken(tokenModel);
-            GenerateTokenAndSendEmailForgotPasswordClient(client);
+            tokenService.GenerateTokenAndSendEmailForgotPasswordClient(client);
             return ResponsePayload.builder()
                     .message("Please check your email")
                     .build();
@@ -128,7 +131,7 @@ public class PasswordService {
         }
         List<TokenModel> tokenModel = tokenRepository.findTokenForgotPasswordAccountantByAccountantID(accountant.getId());
         CheckForgotToken(tokenModel);
-        GenerateTokenAndSendEmailForgotPasswordAccountant(accountant);
+        tokenService.GenerateTokenAndSendEmailForgotPasswordAccountant(accountant);
         return ResponsePayload.builder()
                 .message("Please check your email")
                 .build();
@@ -149,39 +152,7 @@ public class PasswordService {
             }
         }
     }
-
-    private void GenerateTokenAndSendEmailForgotPasswordAccountant(AccountantModel accountant){
-        var jwtToken = jwtService.generateToken(accountant,Token.FORGOT_PASSWORD);
-        var token = TokenModel.builder()
-                .accountant_id(accountant.getId())
-                .token(jwtToken)
-                .tokenType(TokenType.BEARER)
-                .isExpired(false)
-                .isRevoke(false)
-                .tokenFormat(Token.FORGOT_PASSWORD)
-                .email(accountant.getEmail())
-                .build();
-        tokenRepository.save(token);
-        String link = "http://localhost:8080/api/v1/password/confirm-forgot-password?token=" + jwtToken;
-        emailService.send(accountant.getEmail(),emailService.buildEmail(accountant.getName(),link));
-    }
-
-    private void GenerateTokenAndSendEmailForgotPasswordClient(ClientModel client){
-        var jwtToken = jwtService.generateToken(client,Token.FORGOT_PASSWORD);
-        var token = TokenModel.builder()
-                .client_id(client.getId())
-                .token(jwtToken)
-                .tokenType(TokenType.BEARER)
-                .isExpired(false)
-                .isRevoke(false)
-                .tokenFormat(Token.FORGOT_PASSWORD)
-                .email(client.getEmail())
-                .build();
-        tokenRepository.save(token);
-        String link = "http://localhost:8080/api/v1/password/confirm-forgot-password?token=" + jwtToken;
-        emailService.send(client.getEmail(),emailService.buildEmail(client.getName(),link));
-    }
-
+    @Transactional
     public ResponsePayload confirmForgotPassword(String token, ForgotPasswordConfirmRequest request) {
         TokenModel tokenModel = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
         String username;
@@ -208,7 +179,7 @@ public class PasswordService {
             }
             client.setPassword(passwordEncoder.encode(request.getNewPassword()));
             clientRepository.save(client);
-            authenticationService.revokeAllClientToken(client);
+            tokenService.revokeAllClientToken(client);
         }
         else {
             AccountantModel accountant = accountantRepository.findByUsername(username)
@@ -218,7 +189,7 @@ public class PasswordService {
             }
             accountant.setPassword(passwordEncoder.encode(request.getNewPassword()));
             accountantRepository.save(accountant);
-            authenticationService.revokeAllAccountantToken(accountant);
+            tokenService.revokeAllAccountantToken(accountant);
         }
         return ResponsePayload.builder()
                 .message("Password changed successfully")

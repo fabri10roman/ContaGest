@@ -22,6 +22,7 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.io.ByteArrayOutputStream;
@@ -35,8 +36,8 @@ public class AccountantService {
     private final JwtService jwtService;
     private final TokenRepository tokenRepository;
     private final AccountantRepository accountantRepository;
-    private final AuthenticationService authenticationService;
     private final EmailService emailService;
+    private final TokenService tokenService;
 
     public byte[] getPDF(String clientCI, int month, int year) {
 
@@ -94,6 +95,7 @@ public class AccountantService {
     }
 
 
+    @Transactional
     public ResponsePayload changePersonalData (ChangePersonalDataAccountantRequest changePersonalDataAccountantRequest) throws BadRequestException {
         String username;
         try {
@@ -128,14 +130,14 @@ public class AccountantService {
                 if (accountantModelByEmail.isPresent()){
                     throw new ResourceNotFoundException(String.format("Email %s already taken",newEmail));
                 }
-                if (authenticationService.isEmailNotValid(newEmail)){
+                if (emailService.isEmailNotValid(newEmail)){
                     throw new ResourceNotFoundException(String.format("Email %s is not valid",newEmail));
                 }
                 accountant.setEmail(newEmail);
                 accountant.setConfirmed(false);
                 emailService.send(oldEmail, "Email changed. Your email has been changed, if you did not do this, please contact us");
-                authenticationService.revokeAllAccountantToken(accountant);
-                authenticationService.GenerateTokenAndSendEmailChangeEmailAccountant(accountant, newEmail);
+                tokenService.revokeAllAccountantToken(accountant);
+                tokenService.GenerateTokenAndSendEmailChangeEmailAccountant(accountant, newEmail);
             }
             accountantRepository.save(accountant);
         }else{

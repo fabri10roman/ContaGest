@@ -3,20 +3,18 @@ package com.example.ContaGest.service;
 
 import com.example.ContaGest.dto.ResponsePayload;
 import com.example.ContaGest.dto.request.ChangePersonalDataClientRequest;
-import com.example.ContaGest.dto.response.SaveImageResponse;
 import com.example.ContaGest.exception.ResourceNotFoundException;
 import com.example.ContaGest.model.*;
 import io.jsonwebtoken.ExpiredJwtException;
 import com.example.ContaGest.repository.ClientRepository;
-import com.example.ContaGest.repository.InvoiceRepository;
 import com.example.ContaGest.repository.TokenRepository;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,9 +24,10 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final JwtService jwtService;
     private final TokenRepository tokenRepository;
-    private final AuthenticationService authenticationService;
     private final EmailService emailService;
+    private final TokenService tokenService;
 
+    @Transactional
     public ResponsePayload changePersonalData(ChangePersonalDataClientRequest changePersonalDataClientRequest) throws BadRequestException {
         String username;
         try {
@@ -63,14 +62,14 @@ public class ClientService {
                 if (clientModelByEmail.isPresent()){
                     throw new ResourceNotFoundException(String.format("Email %s already taken",newEmail));
                 }
-                if (authenticationService.isEmailNotValid(newEmail)){
+                if (emailService.isEmailNotValid(newEmail)){
                     throw new ResourceNotFoundException(String.format("Email %s is not valid",newEmail));
                 }
                 client.setEmail(newEmail);
                 client.setConfirmed(false);
                 emailService.send(oldEmail, "Email changed. Your email has been changed, if you did not do this, please contact us");
-                authenticationService.revokeAllClientToken(client);
-                authenticationService.GenerateTokenAndSendEmailChangeEmailClient(client, newEmail);
+                tokenService.revokeAllClientToken(client);
+                tokenService.GenerateTokenAndSendEmailChangeEmailClient(client, newEmail);
             }
             clientRepository.save(client);
         }else{

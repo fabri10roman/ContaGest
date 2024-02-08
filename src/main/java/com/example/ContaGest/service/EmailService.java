@@ -1,8 +1,8 @@
 package com.example.ContaGest.service;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -10,12 +10,15 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.regex.Pattern;
+
 @Service
 @RequiredArgsConstructor
 public class EmailService{
 
     private final static Logger LOGGER = LoggerFactory.getLogger(EmailService.class);
     private final JavaMailSender mailSender;
+
     @Async
     public void send(String to, String email) {
         try {
@@ -30,9 +33,15 @@ public class EmailService{
             LOGGER.error("failed to send email", e);
             throw new IllegalStateException("Failed to send email");
         }
-
     }
-
+    public boolean isEmailNotValid(String email) throws BadRequestException {
+        String regexPattern = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
+        if (email == null)
+            throw new BadRequestException("Email is null");
+        return !Pattern.compile(regexPattern)
+                .matcher(email)
+                .matches();
+    }
     public String buildEmail(String name, String link) {
         return "<div style=\"font-family:Helvetica,Arial,sans-serif;font-size:16px;margin:0;color:#0b0c0c\">\n" +
                 "\n" +
