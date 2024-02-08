@@ -11,6 +11,7 @@ import com.example.ContaGest.repository.TokenRepository;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,6 +77,8 @@ public class ClientService {
             throw new ResourceNotFoundException(String.format("Client with CI %s not found",username));
         }
         return ResponsePayload.builder()
+                .status(HttpStatus.OK.value())
+                .title(HttpStatus.OK.getReasonPhrase())
                 .message("Personal data changed successfully")
                 .build();
     }

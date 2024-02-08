@@ -10,8 +10,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 public class ResponsePayload {
-    private final int status = 200;
-    private final String title = "OK";
+    private int status;
+    private String title;
     private String message;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Object> data;

@@ -16,6 +16,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -63,6 +64,8 @@ public class AuthenticationService {
                     tokenService.revokeAllAccountantToken(accountant);
                     tokenService.GenerateTokenAndSendEmailRegisterAccountant(accountant);
                     return ResponsePayload.builder()
+                            .status(HttpStatus.CREATED.value())
+                            .title(HttpStatus.CREATED.getReasonPhrase())
                             .message("Registration successful, please confirm your email")
                             .build();
                 }
@@ -91,6 +94,8 @@ public class AuthenticationService {
         accountantRepository.save(user);
         tokenService.GenerateTokenAndSendEmailRegisterAccountant(user);
         return ResponsePayload.builder()
+                .status(HttpStatus.CREATED.value())
+                .title(HttpStatus.CREATED.getReasonPhrase())
                 .message("Registration successful, please confirm your email")
                 .build();
     }
@@ -126,6 +131,8 @@ public class AuthenticationService {
             tokenRepository.save(tokenModel);
             accountantRepository.save(accountantModel);
             return ResponsePayload.builder()
+                    .status(HttpStatus.OK.value())
+                    .title(HttpStatus.OK.getReasonPhrase())
                     .message("Confirmed")
                     .build();
         }else if (role.equals(Role.CLIENT.name())){
@@ -138,6 +145,8 @@ public class AuthenticationService {
             tokenRepository.save(tokenModel);
             clientRepository.save(clientModel);
             return ResponsePayload.builder()
+                    .status(HttpStatus.OK.value())
+                    .title(HttpStatus.OK.getReasonPhrase())
                     .message("Confirmed")
                     .build();
         }
@@ -184,6 +193,8 @@ public class AuthenticationService {
                 .build();
         List<Object> data = Collections.singletonList(authenticationResponse);
         return ResponsePayload.builder()
+                .status(HttpStatus.OK.value())
+                .title(HttpStatus.OK.getReasonPhrase())
                 .message("Login successful")
                 .data(data)
                 .build();
@@ -224,6 +235,8 @@ public class AuthenticationService {
                     tokenService.GenerateTokenAndSendEmailRegisterClient(client);
                     List<Object> data = Collections.singletonList(pw);
                     return ResponsePayload.builder()
+                            .status(HttpStatus.CREATED.value())
+                            .title(HttpStatus.CREATED.getReasonPhrase())
                             .message("Registration successful")
                             .data(data)
                             .build();
@@ -255,6 +268,8 @@ public class AuthenticationService {
         tokenService.GenerateTokenAndSendEmailRegisterClient(user);
         List<Object> data = Collections.singletonList(pw);
         return ResponsePayload.builder()
+                .status(HttpStatus.CREATED.value())
+                .title(HttpStatus.CREATED.getReasonPhrase())
                 .message("Registration successful")
                 .data(data)
                 .build();
@@ -300,6 +315,8 @@ public class AuthenticationService {
                 .build();
         List<Object> data = Collections.singletonList(authenticationResponse);
         return ResponsePayload.builder()
+                .status(HttpStatus.OK.value())
+                .title(HttpStatus.OK.getReasonPhrase())
                 .message("Login successful")
                 .data(data)
                 .build();
@@ -386,6 +403,8 @@ public class AuthenticationService {
             tokenRepository.save(tokenModel);
             accountantRepository.save(accountantModel);
             return ResponsePayload.builder()
+                    .status(HttpStatus.OK.value())
+                    .title(HttpStatus.OK.getReasonPhrase())
                     .message("Confirmed")
                     .build();
         }else if (role.equals(Role.CLIENT.name())){
@@ -400,6 +419,8 @@ public class AuthenticationService {
             tokenRepository.save(tokenModel);
             clientRepository.save(clientModel);
             return ResponsePayload.builder()
+                    .status(HttpStatus.OK.value())
+                    .title(HttpStatus.OK.getReasonPhrase())
                     .message("Confirmed")
                     .build();
         }

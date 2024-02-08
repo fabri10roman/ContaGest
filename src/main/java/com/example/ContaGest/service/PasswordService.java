@@ -14,6 +14,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -73,6 +74,8 @@ public class PasswordService {
             emailService.send(email,"Password changed. Your password has been changed, if you did not do this, please contact us");
         }
         return ResponsePayload.builder()
+                .status(HttpStatus.OK.value())
+                .title(HttpStatus.OK.getReasonPhrase())
                 .message("Password changed successfully")
                 .build();
     }
@@ -118,6 +121,8 @@ public class PasswordService {
             CheckForgotToken(tokenModel);
             tokenService.GenerateTokenAndSendEmailForgotPasswordClient(client);
             return ResponsePayload.builder()
+                    .status(HttpStatus.OK.value())
+                    .title(HttpStatus.OK.getReasonPhrase())
                     .message("Please check your email")
                     .build();
         }
@@ -133,6 +138,8 @@ public class PasswordService {
         CheckForgotToken(tokenModel);
         tokenService.GenerateTokenAndSendEmailForgotPasswordAccountant(accountant);
         return ResponsePayload.builder()
+                .status(HttpStatus.OK.value())
+                .title(HttpStatus.OK.getReasonPhrase())
                 .message("Please check your email")
                 .build();
     }
@@ -192,6 +199,8 @@ public class PasswordService {
             tokenService.revokeAllAccountantToken(accountant);
         }
         return ResponsePayload.builder()
+                .status(HttpStatus.OK.value())
+                .title(HttpStatus.OK.getReasonPhrase())
                 .message("Password changed successfully")
                 .build();
     }

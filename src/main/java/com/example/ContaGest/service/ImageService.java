@@ -14,6 +14,7 @@ import com.example.ContaGest.repository.TokenRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -66,6 +67,8 @@ public class ImageService {
                 .build();
         data = List.of(saveImageResponse);
         return ResponsePayload.builder()
+                .status(HttpStatus.OK.value())
+                .title(HttpStatus.OK.getReasonPhrase())
                 .message("Image saved successfully")
                 .data(data)
                 .build();
@@ -81,6 +84,8 @@ public class ImageService {
             throw new ResourceNotFoundException(String.format("Image with id %s not found",imageID));
         }
         return ResponsePayload.builder()
+                .status(HttpStatus.OK.value())
+                .title(HttpStatus.OK.getReasonPhrase())
                 .message("Image deleted successfully")
                 .build();
     }
@@ -107,6 +112,8 @@ public class ImageService {
                         ,imageIdRequest.getMonth(),imageIdRequest.getYear(),username));
             }
             return ResponsePayload.builder()
+                    .status(HttpStatus.OK.value())
+                    .title(HttpStatus.OK.getReasonPhrase())
                     .message("Images id found successfully")
                     .data(Collections.singletonList(imagesId))
                     .build();
