@@ -2,6 +2,7 @@ package com.example.ContaGest.service;
 
 import com.example.ContaGest.dto.ResponsePayload;
 import com.example.ContaGest.dto.request.ChangePersonalDataAccountantRequest;
+import com.example.ContaGest.dto.response.ClientResponse;
 import com.example.ContaGest.exception.ResourceNotFoundException;
 import com.example.ContaGest.model.*;
 import com.example.ContaGest.repository.AccountantRepository;
@@ -24,8 +25,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.io.ByteArrayOutputStream;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -147,7 +147,51 @@ public class AccountantService {
     }
 
 
+    public ResponsePayload getClient(String bearerToken) {
+        String token = bearerToken.substring(7);
+        String username;
+        TokenModel tokenModel = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Token not found"));
+        try {
+            username = jwtService.getUsername(token);
+        }catch (ExpiredJwtException e){
+            tokenModel.setExpired(true);
+            tokenModel.setRevoke(true);
+            tokenRepository.save(tokenModel);
+            throw new ExpiredJwtException(null,null,null);
+        }catch (SignatureException e) {
+            throw new SignatureException(null);
+        }
+        if (tokenModel.isRevoke() || tokenModel.isExpired()){
+            throw new ResourceNotFoundException("Token expired");
+        }
+        Optional<AccountantModel> accountantModel = accountantRepository.findByUsername(username);
+        if (accountantModel.isPresent()){
+            List<ClientResponse> data = getClientResponses(accountantModel.get());
+            return ResponsePayload.builder()
+                    .message("Clients found successfully")
+                    .data(Collections.singletonList(data))
+                    .build();
+        }else{
+            throw new ResourceNotFoundException(String.format("Accountant with CI %s not found",username));
+        }
+    }
 
-
-
+    private static List<ClientResponse> getClientResponses(AccountantModel accountant) {
+        List<ClientModel> clients = accountant.getClients();
+        List<ClientResponse> data = new ArrayList<>();
+        clients.forEach(client -> {
+            if (client.isEnable() && client.isConfirmed()) {
+                ClientResponse clientResponse = new ClientResponse();
+                clientResponse.setId(client.getId());
+                clientResponse.setCi(client.getCi());
+                clientResponse.setName(client.getName());
+                clientResponse.setLastname(client.getLastname());
+                clientResponse.setEmail(client.getEmail());
+                clientResponse.setPhoneNumber(client.getPhoneNumber());
+                data.add(clientResponse);
+            }
+        });
+        return data;
+    }
 }

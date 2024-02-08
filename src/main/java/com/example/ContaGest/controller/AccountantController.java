@@ -35,4 +35,9 @@ public class AccountantController {
     public ResponsePayload changePersonalData(@RequestBody ChangePersonalDataAccountantRequest changePersonalDataAccountantRequest) throws BadRequestException {
         return accountantService.changePersonalData(changePersonalDataAccountantRequest);
     }
+    @GetMapping("/get-clients")
+    @ResponseBody
+    public ResponsePayload getClient(@RequestHeader("Authorization") String bearerToken) {
+        return accountantService.getClient(bearerToken);
+    }
 }
