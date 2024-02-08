@@ -13,10 +13,6 @@ public interface InvoiceRepository extends JpaRepository<InvoiceModel,Integer>{
 
     @Query("SELECT f FROM InvoiceModel f WHERE f.client.ci =:clientCI AND f.month =:month AND f.year =:year")
     List<InvoiceModel> findByClientIdAndMonthAndYear(@Param("clientCI") String clientCI, @Param("month") int month, @Param("year") int year);
-
-    @Query("SELECT f.id FROM InvoiceModel f WHERE f.client.ci =:clientCI AND f.year =:year")
-    List<Integer> findIdByClientCI (@Param("clientCI") String clientCI, @Param("year") int year);
-
-    @Query("SELECT f.id FROM InvoiceModel f WHERE f.client.ci =:clientCI AND f.month =:month AND f.year =:year")
-    List<Integer> findIdByClientCiAndMonthAndYear(@Param("clientCI") String clientCI, @Param("month") int month , @Param("year") int year);
+    @Query("SELECT f.id FROM InvoiceModel f WHERE f.month =:month AND f.year =:year AND f.client.id =:id")
+    List<Integer> findImagesId(@Param("month") String month,@Param("year") String year,@Param("id") Integer id);
 }

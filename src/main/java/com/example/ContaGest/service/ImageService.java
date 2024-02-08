@@ -2,6 +2,7 @@ package com.example.ContaGest.service;
 
 
 import com.example.ContaGest.dto.ResponsePayload;
+import com.example.ContaGest.dto.request.ImageIdRequest;
 import com.example.ContaGest.dto.response.SaveImageResponse;
 import com.example.ContaGest.exception.ResourceNotFoundException;
 import com.example.ContaGest.model.ClientModel;
@@ -15,6 +16,7 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,8 +28,6 @@ public class ImageService {
     private final JwtService jwtService;
     private final TokenRepository tokenRepository;
     private final ClientRepository clientRepository;
-
-
     public InvoiceModel getBinaryImage (Integer id){
         return invoiceRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Image with id %s not found",id)));
     }
@@ -83,5 +83,35 @@ public class ImageService {
         return ResponsePayload.builder()
                 .message("Image deleted successfully")
                 .build();
+    }
+
+    public ResponsePayload getImagesId(ImageIdRequest imageIdRequest) {
+        String username;
+        TokenModel tokenModel = tokenRepository.findByToken(imageIdRequest.getToken())
+                .orElseThrow(() -> new ResourceNotFoundException("Token not found"));
+        try {
+            username = jwtService.getUsername(imageIdRequest.getToken());
+        }catch (ExpiredJwtException e){
+            tokenModel.setExpired(true);
+            tokenModel.setRevoke(true);
+            tokenRepository.save(tokenModel);
+            throw new ExpiredJwtException(null,null,null);
+        }catch (SignatureException e) {
+            throw new SignatureException(null);
+        }
+        Optional<ClientModel> clientModel = clientRepository.findByUsername(username);
+        if (clientModel.isPresent()){
+            var imagesId = invoiceRepository.findImagesId(imageIdRequest.getMonth(),imageIdRequest.getYear(),clientModel.get().getId());
+            if (imagesId.isEmpty()){
+                throw new ResourceNotFoundException(String.format("Images with month %s and year %s not found for the client with CI %s"
+                        ,imageIdRequest.getMonth(),imageIdRequest.getYear(),username));
+            }
+            return ResponsePayload.builder()
+                    .message("Images id found successfully")
+                    .data(Collections.singletonList(imagesId))
+                    .build();
+        }else{
+            throw new ResourceNotFoundException(String.format("Client with CI %s not found",username));
+        }
     }
 }

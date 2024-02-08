@@ -1,6 +1,7 @@
 package com.example.ContaGest.controller;
 
 import com.example.ContaGest.dto.ResponsePayload;
+import com.example.ContaGest.dto.request.ImageIdRequest;
 import com.example.ContaGest.dto.request.SaveImageRequest;
 import com.example.ContaGest.service.ClientService;
 import com.example.ContaGest.service.ImageService;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/img")
@@ -35,5 +37,9 @@ public class ImageController {
     @ResponseBody
     public ResponsePayload deleteImage(@PathVariable Integer imgID) {
         return imageService.deleteImage(imgID);
+    }
+    @GetMapping()
+    public ResponsePayload getImagesId(@RequestBody ImageIdRequest imageIdRequest){
+        return imageService.getImagesId(imageIdRequest);
     }
 }
