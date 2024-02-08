@@ -265,7 +265,7 @@ public class AuthenticationService {
         } catch (DisabledException e) {
             throw new DisabledException(String.format("The client with CI %s is not enable", request.getCi()));
         } catch (BadCredentialsException e) {
-            throw new BadCredentialsException(String.format("Password incorrect for client with CI %s", request.getCi()));
+            throw new BadCredentialsException("Bad credentials");
         } catch (LockedException e) {
             throw new LockedException(String.format("The client with CI %s is locked", request.getCi()));
         } catch (Exception e) {
