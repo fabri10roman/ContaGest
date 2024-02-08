@@ -43,7 +43,10 @@ public class AuthenticationController {
 
     @PostMapping("/register-client")
     @ResponseBody
-    public ResponsePayload registerClient(@RequestBody RegisterClientRequest request) throws BadRequestException {
+    public ResponsePayload registerClient(@RequestBody RegisterClientRequest request,
+                                          @RequestHeader("Authorization") String barerToken) throws BadRequestException {
+        String token = barerToken.substring(7);
+        request.setToken(token);
         return authenticationService.registerClient(request);
     }
 

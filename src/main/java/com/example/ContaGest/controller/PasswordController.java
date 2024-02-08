@@ -18,7 +18,10 @@ public class PasswordController {
 
     @PatchMapping()
     @ResponseBody
-    public ResponsePayload changePassword(@RequestBody ChangePasswordRequest request){
+    public ResponsePayload changePassword(@RequestBody ChangePasswordRequest request,
+                                          @RequestHeader("Authorization") String barerToken){
+        String token = barerToken.substring(7);
+        request.setToken(token);
         return passwordService.changePassword(request);
 
     }

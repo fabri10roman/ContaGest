@@ -19,7 +19,10 @@ public class ClientController {
 
     @PatchMapping()
     @ResponseBody
-    public ResponsePayload changePersonalData(@RequestBody ChangePersonalDataClientRequest changePersonalDataClientRequest) throws BadRequestException {
+    public ResponsePayload changePersonalData(@RequestBody ChangePersonalDataClientRequest changePersonalDataClientRequest,
+                                              @RequestHeader("Authorization") String barerToken) throws BadRequestException {
+        String token = barerToken.substring(7);
+        changePersonalDataClientRequest.setToken(token);
         return clientService.changePersonalData(changePersonalDataClientRequest);
     }
 }

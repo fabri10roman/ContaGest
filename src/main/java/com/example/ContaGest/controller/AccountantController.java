@@ -32,12 +32,16 @@ public class AccountantController {
     }
     @PatchMapping()
     @ResponseBody
-    public ResponsePayload changePersonalData(@RequestBody ChangePersonalDataAccountantRequest changePersonalDataAccountantRequest) throws BadRequestException {
+    public ResponsePayload changePersonalData(@RequestBody ChangePersonalDataAccountantRequest changePersonalDataAccountantRequest,
+                                              @RequestHeader("Authorization") String bearerToken ) throws BadRequestException {
+        String token = bearerToken.substring(7);
+        changePersonalDataAccountantRequest.setToken(token);
         return accountantService.changePersonalData(changePersonalDataAccountantRequest);
     }
     @GetMapping("/get-clients")
     @ResponseBody
     public ResponsePayload getClient(@RequestHeader("Authorization") String bearerToken) {
-        return accountantService.getClient(bearerToken);
+        String token = bearerToken.substring(7);
+        return accountantService.getClient(token);
     }
 }

@@ -150,8 +150,7 @@ public class AccountantService {
                 .message("Personal data changed successfully")
                 .build();
     }
-    public ResponsePayload getClient(String bearerToken) {
-        String token = bearerToken.substring(7);
+    public ResponsePayload getClient(String token) {
         String username;
         TokenModel tokenModel = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Token not found"));

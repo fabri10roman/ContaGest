@@ -29,7 +29,10 @@ public class ImageController {
     }
     @PostMapping()
     @ResponseBody
-    public ResponsePayload saveImage(SaveImageRequest saveImageRequest) throws IOException {
+    public ResponsePayload saveImage(SaveImageRequest saveImageRequest,
+                                     @RequestHeader("Authorization") String barerToken) throws IOException {
+        String token = barerToken.substring(7);
+        saveImageRequest.setToken(token);
         return imageService.saveImage(saveImageRequest.getMonth(), saveImageRequest.getFile().getBytes(), saveImageRequest.getYear(), saveImageRequest.getToken());
     }
 
