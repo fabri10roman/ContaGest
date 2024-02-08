@@ -149,7 +149,7 @@ public class AuthenticationService {
         } catch (DisabledException e) {
             throw new DisabledException(String.format("The accountant with CI %s is not enable", request.getCi()));
         } catch (BadCredentialsException e) {
-            throw new BadCredentialsException(String.format("Password incorrect for accountant with CI %s", request.getCi()));
+            throw new BadCredentialsException("Bad credentials");
         } catch (LockedException e) {
             throw new LockedException(String.format("The accountant with CI %s is locked", request.getCi()));
         } catch (Exception e) {
