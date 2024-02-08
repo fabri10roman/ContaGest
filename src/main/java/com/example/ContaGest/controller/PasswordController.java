@@ -16,13 +16,13 @@ public class PasswordController {
 
     private final PasswordService passwordService;
 
-    @PatchMapping("/change")
+    @PatchMapping()
     @ResponseBody
     public ResponsePayload changePassword(@RequestBody ChangePasswordRequest request){
         return passwordService.changePassword(request);
 
     }
-    @PostMapping("/password-forgot")
+    @PostMapping("/forgot")
     @ResponseBody
     public ResponsePayload forgotPassword(@RequestBody ForgotPasswordRequest request){
         return passwordService.forgotPassword(request);

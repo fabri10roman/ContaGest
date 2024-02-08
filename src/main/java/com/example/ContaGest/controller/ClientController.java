@@ -29,7 +29,7 @@ public class ClientController {
         return clientService.deleteImage(imgID);
     }
 
-    @PostMapping("/change-personal-data")
+    @PatchMapping()
     @ResponseBody
     public ResponsePayload changePersonalData(@RequestBody ChangePersonalDataClientRequest changePersonalDataClientRequest) throws BadRequestException {
         return clientService.changePersonalData(changePersonalDataClientRequest);

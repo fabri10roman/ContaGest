@@ -30,7 +30,7 @@ public class AccountantController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(resource);
     }
-    @PostMapping("/change-personal-data")
+    @PatchMapping()
     @ResponseBody
     public ResponsePayload changePersonalData(@RequestBody ChangePersonalDataAccountantRequest changePersonalDataAccountantRequest) throws BadRequestException {
         return accountantService.changePersonalData(changePersonalDataAccountantRequest);
