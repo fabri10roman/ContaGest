@@ -42,7 +42,10 @@ public class ImageController {
         return imageService.deleteImage(imgID);
     }
     @GetMapping()
-    public ResponsePayload getImagesId(@RequestBody ImageIdRequest imageIdRequest){
+    public ResponsePayload getImagesId(@RequestBody ImageIdRequest imageIdRequest,
+                                       @RequestHeader("Authorization") String barerToken){
+        String token = barerToken.substring(7);
+        imageIdRequest.setToken(token);
         return imageService.getImagesId(imageIdRequest);
     }
 }
