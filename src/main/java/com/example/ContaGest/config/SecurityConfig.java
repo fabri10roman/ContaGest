@@ -44,11 +44,11 @@ public class SecurityConfig {
                 authorizeHttpRequests
                         .requestMatchers(
                                 "/api/v1/auth/register-accountant",
-                                "api/v1/auth/login",
-                                "api/v1/auth/confirm-accountant",
-                                "api/v1/auth/confirm-client",
-                                "api/v1/password/confirm-forgot-password",
-                                "api/v1/password/password-forgot",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/confirm-accountant",
+                                "/api/v1/auth/confirm-client",
+                                "/api/v1/password/confirm-forgot-password",
+                                "/api/v1/password/password-forgot",
                                 "/api/v1/auth/confirm-change-email"
                                 ).permitAll()
                         .requestMatchers(
