@@ -7,6 +7,7 @@ import io.jsonwebtoken.security.SignatureException;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -83,6 +84,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleException(Exception e){
         ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.INTERNAL_SERVER_ERROR.value(),HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),e.getMessage());
         return new ResponseEntity<>(exceptionPayload, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException e){
+        ExceptionPayload exceptionPayload = new ExceptionPayload(HttpStatus.FORBIDDEN.value(),HttpStatus.FORBIDDEN.getReasonPhrase(),e.getMessage());
+        return new ResponseEntity<>(exceptionPayload, HttpStatus.FORBIDDEN);
     }
 
 }
